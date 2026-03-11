@@ -1,160 +1,101 @@
 "use client"; 
-// This line tells Next.js that this file should run in the browser.
-// By default, Next.js components can run on the server.
-// We need browser execution because we use interactive features like state and button clicks.
+// This tells Next.js that this component must run in the browser.
+// We need this because we are using interactive features like button clicks.
 
 import { useEffect, useState } from "react";
-// We are importing two special React tools called "hooks".
-// Hooks are built-in functions that allow React components to store data and react to events.
-//
-// useState → allows us to store changing data inside the page.
-// useEffect → allows us to run code automatically when the page loads.
+// Import React hooks.
+// useState → allows the component to store changing data.
+// useEffect → allows code to run automatically when the page loads.
+
+
 
 type Room = {
-  // "type" defines the structure of a Room object.
-  // Think of it as a blueprint describing what information every room must contain.
+  // This TypeScript "type" defines what data each room must contain.
 
   id: number; 
-  // A unique numeric identifier for the room.
-  // This helps React keep track of each room when rendering lists.
+  // Unique numeric ID for the room.
 
   roomNumber: string; 
-  // The visible room number (example: "302W").
+  // Visible room number.
 
   className: string; 
-  // The name of the class normally scheduled in this room.
+  // Scheduled class name.
 
   classStart: string; 
-  // The time the class starts.
-  // Stored as a string in HH:MM format.
+  // Class start time in HH:MM format.
 
   classEnd: string; 
-  // The time the class ends.
-  // Also stored as HH:MM.
+  // Class end time in HH:MM format.
 
   booked: boolean; 
-  // A boolean means true or false.
-  // true = the room has been booked manually.
-  // false = the room is not booked.
+  // Indicates if the room is booked or locked.
 
   capacity: number; 
-  // Maximum number of students allowed inside the room.
+  // Maximum number of students allowed.
 
   currentOccupancy: number; 
   // Current number of students inside the room.
 
   teacher: string; 
-  // The teacher supervising this room.
+  // Teacher supervising the room.
+
+  userBooked: boolean;
+  // NEW FIELD
+  // Tracks whether THIS user has booked a spot.
+  // This allows us to show an "Unbook" button later.
 };
 
 
 
 function isClassInSession(start: string, end: string) {
-  // This is a normal JavaScript function.
-  // Functions group together code so we can reuse it easily.
-  //
-  // This function checks whether a class is happening RIGHT NOW.
-  //
-  // It takes two inputs:
-  // start → class start time
-  // end → class end time
+  // This function checks if the class is currently happening.
 
   const now = new Date();
-  // This creates a new Date object containing the current date and time.
+  // Create a Date object containing the current time.
 
   const current = now.toTimeString().slice(0, 5);
-  // now.toTimeString() converts the time into text.
-  // Example: "09:42:31 GMT..."
-  //
-  // .slice(0,5) extracts only the first five characters.
-  // That gives us "HH:MM".
+  // Convert the time into HH:MM format.
 
   return current >= start && current <= end;
-  // This compares the current time to the class start and end times.
-  //
-  // >= means "greater than or equal to"
-  // <= means "less than or equal to"
-  //
-  // If the current time is between those values,
-  // the function returns TRUE.
-  //
-  // Otherwise it returns FALSE.
+  // Returns TRUE if the current time falls between start and end.
 }
 
 
 
 export default function Home() {
-  // This is the main React component for the page.
-  // In Next.js, a page is simply a function that returns visual content.
-  //
-  // "export default" means this is the main thing this file provides.
+  // Main page component.
 
 
 
   const [rooms, setRooms] = useState<Room[]>([]);
-  // useState creates a piece of stored data called "state".
-  //
-  // rooms → the current list of room objects
-  // setRooms → a function used to update that list
-  //
-  // <Room[]> tells TypeScript that the state will contain an array of Room objects.
-  //
-  // [] means we start with an empty list.
+  // "rooms" stores all classroom objects.
+  // setRooms updates that data.
 
 
 
   const [message, setMessage] = useState<string | null>(null);
-  // This creates another state variable called "message".
-  //
-  // This will store booking confirmation messages.
-  //
-  // string | null means:
-  // - either a text message
-  // - or nothing (null)
+  // Stores confirmation messages such as:
+  // "You booked a space in Room 302W".
 
 
 
   useEffect(() => {
-    // useEffect runs code automatically when the component loads.
-    //
-    // This is useful for things like:
-    // - fetching data
-    // - initializing values
-    // - loading test data
+    // This code runs once when the page loads.
 
     const dummyRooms: Room[] = [
-      // This is fake test data.
-      // Each object inside this list represents a classroom.
-
       {
         id: 1,
-        // Unique ID used by React.
-
         roomNumber: "302W",
-        // Visible room number.
-
         className: "Algebra II",
-        // Scheduled class.
-
         classStart: "09:15",
-        // Class start time.
-
         classEnd: "10:00",
-        // Class end time.
-
         booked: false,
-        // Room is not currently booked.
-
         capacity: 20,
-        // Maximum allowed students.
-
         currentOccupancy: 3,
-        // Currently 3 students inside.
-
         teacher: "Mr. A",
-        // Teacher supervising.
+        userBooked: false
+        // Initially the user has not booked this room.
       },
-
       {
         id: 2,
         roomNumber: "504N",
@@ -165,8 +106,8 @@ export default function Home() {
         capacity: 20,
         currentOccupancy: 20,
         teacher: "Ms. B",
+        userBooked: false
       },
-
       {
         id: 3,
         roomNumber: "408N",
@@ -177,91 +118,105 @@ export default function Home() {
         capacity: 18,
         currentOccupancy: 0,
         teacher: "Mr. C",
+        userBooked: false
       },
     ];
 
-
-
     setRooms(dummyRooms);
-    // This saves the dummy data into the rooms state.
-    // React will automatically update the page display when state changes.
+    // Save dummy data into state so React can display it.
 
   }, []);
-  // The empty array means this effect runs ONLY once when the page loads.
 
 
 
   function bookRoom(id: number) {
-    // This function runs when someone clicks "Book Space".
-    //
-    // The id parameter tells us which room is being booked.
+    // This function runs when the user presses "Book Space".
 
     setRooms((prevRooms) =>
-      // setRooms updates the room state.
-      //
-      // Instead of replacing the entire list,
-      // we pass a function that receives the previous value.
-      //
-      // prevRooms represents the previous array of rooms.
-
       prevRooms.map((room) => {
-        // map() loops through every room in the list.
-        //
-        // For each room, we return either:
-        // - the original room
-        // - or an updated version.
 
         if (room.id === id) {
-          // If the current room matches the clicked room...
+          // If this is the selected room...
+
+          if (room.userBooked) {
+            // Prevent double booking.
+
+            setMessage("You already booked this room.");
+            return room;
+          }
 
           if (room.currentOccupancy >= room.capacity) {
-            // If the room is already full...
+            // Prevent booking if room is full.
 
-            setMessage(`Room ${room.roomNumber} is already full.`);
-            // Show a message saying the room cannot be booked.
-
+            setMessage(`Room ${room.roomNumber} is full.`);
             return room;
-            // Return the original room unchanged.
           }
 
           const newOccupancy = room.currentOccupancy + 1;
-          // Increase the occupancy by 1.
-
-
+          // Increase occupancy by 1.
 
           const updatedRoom = {
             ...room,
-            // The "spread operator" (...) copies all properties
-            // from the existing room object.
-            //
-            // Example:
-            //
-            // room = { id:1, capacity:20 }
-            //
-            // ...room copies those values into the new object.
-            //
-            // This prevents us from manually rewriting every field.
+            // Spread operator (...) copies all original room properties.
 
             currentOccupancy: newOccupancy,
-            // Replace the occupancy value with the new one.
+            // Replace occupancy with new value.
 
-            booked: newOccupancy >= room.capacity ? true : room.booked
-            // If the room reaches capacity,
-            // automatically mark it as booked.
+            userBooked: true,
+            // Mark that THIS user booked a seat.
+
+            booked: newOccupancy >= room.capacity
+            // Automatically mark room as booked if capacity reached.
           };
 
-
-
-          setMessage(`You successfully booked a space in Room ${room.roomNumber}!`);
-          // Show confirmation message.
+          setMessage(`You booked a space in Room ${room.roomNumber}!`);
 
           return updatedRoom;
-          // Return the updated room object.
         }
 
         return room;
-        // If this is not the selected room,
-        // return it unchanged.
+      })
+    );
+  }
+
+
+
+  function unbookRoom(id: number) {
+    // This function runs when the user presses "Unbook".
+
+    setRooms((prevRooms) =>
+      prevRooms.map((room) => {
+
+        if (room.id === id) {
+
+          if (!room.userBooked) {
+            // Prevent unbooking if user never booked.
+
+            return room;
+          }
+
+          const newOccupancy = Math.max(room.currentOccupancy - 1, 0);
+          // Reduce occupancy by 1.
+          // Math.max ensures the number never goes below 0.
+
+          const updatedRoom = {
+            ...room,
+
+            currentOccupancy: newOccupancy,
+
+            userBooked: false,
+            // User no longer has a booking.
+
+            booked: false
+            // Unlock the room if someone leaves.
+          };
+
+          setMessage(`You removed your booking from Room ${room.roomNumber}.`);
+
+          return updatedRoom;
+        }
+
+        return room;
       })
     );
   }
@@ -269,53 +224,36 @@ export default function Home() {
 
 
   return (
-    // Everything inside return() is what gets displayed on the webpage.
 
     <div className="min-h-screen bg-zinc-100 p-8 dark:bg-zinc-900">
-      {/* This creates the main page container */}
 
       <h1 className="mb-6 text-4xl font-bold text-zinc-800 dark:text-white">
         CGPS Room Availability Dashboard
       </h1>
-      {/* Large title text */}
 
 
 
       {message && (
-        // This is conditional rendering.
-        //
-        // If "message" contains text,
-        // React will display this box.
-
         <div className="mb-6 rounded-lg bg-green-600 p-3 text-white">
           {message}
-          {/* The actual message text */}
         </div>
       )}
 
 
 
       <div className="grid gap-6 md:grid-cols-3">
-        {/* This creates a grid layout for the room cards. */}
-
-
 
         {rooms.map((room) => {
-          // This loops through each room and creates a card.
 
           const classInSession = isClassInSession(
             room.classStart,
             room.classEnd
           );
-          // Check if the class is currently happening.
 
 
 
           let status = "Available";
-          // Default room status.
-
           let statusColor = "bg-green-500";
-          // Default status color (green).
 
 
 
@@ -340,8 +278,6 @@ export default function Home() {
 
             <div
               key={room.id}
-              // key helps React track elements when rendering lists.
-
               className="rounded-2xl bg-white p-6 shadow-md dark:bg-zinc-800"
             >
 
@@ -364,10 +300,8 @@ export default function Home() {
 
 
               <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-200 font-medium">
-                Teacher: {room.teacher ? room.teacher : "N/A"}
+                Teacher: {room.teacher || "N/A"}
               </p>
-              {/* If teacher exists, show it.
-                 Otherwise show "N/A". */}
 
 
 
@@ -385,18 +319,32 @@ export default function Home() {
 
 
 
+              {/* BOOK BUTTON */}
+
               {!classInSession &&
-                !room.booked &&
+                !room.userBooked &&
                 room.currentOccupancy < room.capacity && (
 
                 <button
                   onClick={() => bookRoom(room.id)}
-                  // When the button is clicked,
-                  // run the bookRoom function.
-
-                  className="mt-4 w-full rounded-xl bg-blue-600 py-2 text-white transition hover:bg-blue-700"
+                  className="mt-4 w-full rounded-xl bg-blue-600 py-2 text-white hover:bg-blue-700"
                 >
                   Book Space
+                </button>
+
+              )}
+
+
+
+              {/* UNBOOK BUTTON */}
+
+              {!classInSession && room.userBooked && (
+
+                <button
+                  onClick={() => unbookRoom(room.id)}
+                  className="mt-4 w-full rounded-xl bg-red-600 py-2 text-white hover:bg-red-700"
+                >
+                  Unbook Space
                 </button>
 
               )}
@@ -407,6 +355,8 @@ export default function Home() {
         })}
 
       </div>
+
     </div>
+
   );
 }
