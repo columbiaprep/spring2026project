@@ -224,139 +224,181 @@ export default function Home() {
 
 
   return (
+  // The return statement tells React what HTML (JSX) to display on the page.
+  // Everything inside the parentheses is the content of the page.
 
-    <div className="min-h-screen bg-zinc-100 p-8 dark:bg-zinc-900">
+  <div className="min-h-screen bg-zinc-100 p-8 dark:bg-zinc-900">
+    {/* 
+      This is the main container for the page.
+      - min-h-screen → minimum height is the full browser window.
+      - bg-zinc-100 → light background color.
+      - p-8 → padding around the edges.
+      - dark:bg-zinc-900 → dark mode background color.
+    */}
 
-      <h1 className="mb-6 text-4xl font-bold text-zinc-800 dark:text-white">
-        CGPS Room Availability Dashboard
-      </h1>
+    <h1 className="mb-6 text-4xl font-bold text-zinc-800 dark:text-white">
+      CGPS Room Availability Dashboard
+    </h1>
+    {/* 
+      Page title.
+      - mb-6 → margin bottom spacing.
+      - text-4xl → large font size.
+      - font-bold → bold text.
+      - text-zinc-800 → dark text for light mode.
+      - dark:text-white → white text for dark mode.
+    */}
 
+    {message && (
+      // Conditional rendering: only show this block if "message" has text.
+      // The && operator works like: if message exists, display the following JSX.
 
+      <div className="mb-6 rounded-lg bg-green-600 p-3 text-white">
+        {message}
+        {/* Display the message text from the state, e.g., "You booked a space!" */}
+      </div>
+    )}
 
-      {message && (
-        <div className="mb-6 rounded-lg bg-green-600 p-3 text-white">
-          {message}
-        </div>
-      )}
+    <div className="grid gap-6 md:grid-cols-3">
+      {/* 
+        Grid container for all the room cards.
+        - grid → use CSS grid layout.
+        - gap-6 → space between grid items.
+        - md:grid-cols-3 → on medium screens and up, show 3 columns.
+      */}
 
+      {rooms.map((room) => {
+        // Loop through the rooms array.
+        // For each room, we create a card.
+        // "room" represents the current room object in this iteration.
 
+        const classInSession = isClassInSession(
+          room.classStart,
+          room.classEnd
+        );
+        // Call the helper function to check if the class is happening now.
+        // Returns true or false.
 
-      <div className="grid gap-6 md:grid-cols-3">
+        let status = "Available";
+        let statusColor = "bg-green-500";
+        // Default status values.
+        // status → text shown on the badge.
+        // statusColor → color class for the badge.
 
-        {rooms.map((room) => {
+        if (classInSession) {
+          status = "Class in Session";
+          statusColor = "bg-red-500";
+        }
+        // If the class is happening right now, override defaults.
 
-          const classInSession = isClassInSession(
-            room.classStart,
-            room.classEnd
-          );
+        else if (room.currentOccupancy >= room.capacity) {
+          status = "Full";
+          statusColor = "bg-gray-600";
+        }
+        // If the room reached max capacity, show as Full.
 
+        else if (room.booked) {
+          status = "Booked";
+          statusColor = "bg-yellow-500";
+        }
+        // If room is manually booked but not full, show as Booked.
 
+        return (
+          // Return a JSX card for this room.
 
-          let status = "Available";
-          let statusColor = "bg-green-500";
+          <div
+            key={room.id}
+            // key is required by React to efficiently track list items.
+            className="rounded-2xl bg-white p-6 shadow-md dark:bg-zinc-800"
+          >
+            {/* 
+              Room card container.
+              - rounded-2xl → rounded corners.
+              - bg-white → white background.
+              - p-6 → padding inside the card.
+              - shadow-md → drop shadow.
+              - dark:bg-zinc-800 → dark mode background.
+            */}
 
+            <h2 className="text-2xl font-semibold text-zinc-800 dark:text-white">
+              Room {room.roomNumber}
+            </h2>
+            {/* Room number title. */}
 
+            <p className="mt-2 text-sm text-zinc-500">
+              Scheduled Class: {room.className}
+            </p>
+            {/* Display the class scheduled in this room. */}
 
-          if (classInSession) {
-            status = "Class in Session";
-            statusColor = "bg-red-500";
-          }
+            <p className="text-sm text-zinc-500">
+              {room.classStart} – {room.classEnd}
+            </p>
+            {/* Display the start and end times. */}
 
-          else if (room.currentOccupancy >= room.capacity) {
-            status = "Full";
-            statusColor = "bg-gray-600";
-          }
-
-          else if (room.booked) {
-            status = "Booked";
-            statusColor = "bg-yellow-500";
-          }
-
-
-
-          return (
+            <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-200 font-medium">
+              Teacher: {room.teacher || "N/A"}
+            </p>
+            {/* Display the teacher. If teacher is empty/null, show "N/A". */}
 
             <div
-              key={room.id}
-              className="rounded-2xl bg-white p-6 shadow-md dark:bg-zinc-800"
+              className={`mt-4 inline-block rounded-full px-4 py-1 text-sm font-medium text-white ${statusColor}`}
             >
+              {status}
+            </div>
+            {/* 
+              Badge showing room status.
+              - mt-4 → margin top.
+              - inline-block → size matches content.
+              - rounded-full → pill shape.
+              - px-4 py-1 → padding inside badge.
+              - text-sm → small text.
+              - font-medium → medium weight font.
+              - text-white → text color.
+              - ${statusColor} → dynamic color based on room status.
+            */}
 
-              <h2 className="text-2xl font-semibold text-zinc-800 dark:text-white">
-                Room {room.roomNumber}
-              </h2>
+            <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+              Occupancy: {room.currentOccupancy} / {room.capacity}
+            </p>
+            {/* Show current occupancy out of total capacity. */}
 
-
-
-              <p className="mt-2 text-sm text-zinc-500">
-                Scheduled Class: {room.className}
-              </p>
-
-
-
-              <p className="text-sm text-zinc-500">
-                {room.classStart} – {room.classEnd}
-              </p>
-
-
-
-              <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-200 font-medium">
-                Teacher: {room.teacher || "N/A"}
-              </p>
-
-
-
-              <div
-                className={`mt-4 inline-block rounded-full px-4 py-1 text-sm font-medium text-white ${statusColor}`}
-              >
-                {status}
-              </div>
-
-
-
-              <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
-                Occupancy: {room.currentOccupancy} / {room.capacity}
-              </p>
-
-
-
-              {/* BOOK BUTTON */}
-
-              {!classInSession &&
-                !room.userBooked &&
-                room.currentOccupancy < room.capacity && (
+            {/* BOOK BUTTON */}
+            {!classInSession &&
+              !room.userBooked &&
+              room.currentOccupancy < room.capacity && (
+                // Conditional rendering:
+                // Only show Book button if:
+                // - Class is not in session.
+                // - User has not already booked this room.
+                // - Room is not full.
 
                 <button
                   onClick={() => bookRoom(room.id)}
+                  // When clicked, call the bookRoom function with the room's ID.
                   className="mt-4 w-full rounded-xl bg-blue-600 py-2 text-white hover:bg-blue-700"
                 >
                   Book Space
                 </button>
+            )}
 
-              )}
+            {/* UNBOOK BUTTON */}
+            {!classInSession && room.userBooked && (
+              // Conditional rendering:
+              // Only show Unbook button if:
+              // - Class is not in session.
+              // - User has booked this room.
 
-
-
-              {/* UNBOOK BUTTON */}
-
-              {!classInSession && room.userBooked && (
-
-                <button
-                  onClick={() => unbookRoom(room.id)}
-                  className="mt-4 w-full rounded-xl bg-red-600 py-2 text-white hover:bg-red-700"
-                >
-                  Unbook Space
-                </button>
-
-              )}
-
-            </div>
-
-          );
-        })}
-
-      </div>
-
+              <button
+                onClick={() => unbookRoom(room.id)}
+                // When clicked, call the unbookRoom function with the room's ID.
+                className="mt-4 w-full rounded-xl bg-red-600 py-2 text-white hover:bg-red-700"
+              >
+                Unbook Space
+              </button>
+            )}
+          </div>
+        );
+      })}
     </div>
-
-  );
+  </div>
+  )
 }
