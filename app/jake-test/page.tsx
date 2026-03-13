@@ -79,6 +79,14 @@ export default function Home() {
 
 
 
+  const [bookedRoomId, setBookedRoomId] = useState<number | null>(null);
+  // NEW STATE
+  // Tracks which room the user has currently booked.
+  // This allows us to disable booking in all other rooms.
+  // If null → the user has not booked any room.
+
+
+
   useEffect(() => {
     // This code runs once when the page loads.
 
@@ -132,6 +140,13 @@ export default function Home() {
   function bookRoom(id: number) {
     // This function runs when the user presses "Book Space".
 
+    if (bookedRoomId !== null) {
+      // Prevent booking another room if the user already has one booked.
+
+      setMessage("You already booked a room. Unbook it before booking another.");
+      return;
+    }
+
     setRooms((prevRooms) =>
       prevRooms.map((room) => {
 
@@ -168,6 +183,10 @@ export default function Home() {
             booked: newOccupancy >= room.capacity
             // Automatically mark room as booked if capacity reached.
           };
+
+          setBookedRoomId(id);
+          // Save which room the user booked.
+          // This will disable booking buttons in other rooms.
 
           setMessage(`You booked a space in Room ${room.roomNumber}!`);
 
@@ -213,6 +232,10 @@ export default function Home() {
             booked: false
             // Unlock the room if someone leaves.
           };
+
+          setBookedRoomId(null);
+          // Reset the booked room tracker.
+          // This allows the user to book another room again.
 
           setMessage(`You removed your booking from Room ${room.roomNumber}.`);
 
@@ -381,7 +404,15 @@ export default function Home() {
                 <button
                   onClick={() => bookRoom(room.id)}
                   // When clicked, call the bookRoom function with the room's ID.
-                  className="mt-4 w-full rounded-xl bg-blue-600 py-2 text-white hover:bg-blue-700"
+
+                  disabled={bookedRoomId !== null && bookedRoomId !== room.id}
+                  // Disable this button if another room is already booked.
+
+                  className={`mt-4 w-full rounded-xl py-2 text-white ${
+                    bookedRoomId !== null && bookedRoomId !== room.id
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
                   Book Space
                 </button>
