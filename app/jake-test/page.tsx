@@ -198,6 +198,9 @@ export default function Home() {
           const newOccupancy = Math.max(room.currentOccupancy - 1, 0);
           // Reduce occupancy by 1.
           // Math.max ensures the number never goes below 0.
+          // Math.max() is a built-in static function that returns the largest of the numerical parameters given as input
+          // If no arguments are provided, it returns -Infinity
+          // It is commonly used to find the maximum value among variables or elements in an array
 
           const updatedRoom = {
             ...room,
