@@ -368,6 +368,10 @@ export default function Home() {
             {!classInSession &&
               !room.userBooked &&
               room.currentOccupancy < room.capacity && (
+                // The double ampersands represent a logical AND operator
+                // Ensures that the code executes only if both conditions are true
+                // Checks that classInSession is false and room.userBooked is false
+                // If either is true, the condition fails
                 // Conditional rendering:
                 // Only show Book button if:
                 // - Class is not in session.
