@@ -2,38 +2,107 @@
 // Tells Next.js this file runs in the browser (not server-side)
 // Required for all interactive features like useState, clicks, etc.
 
+// ═════════════════════════════════════════════════════════════════════════════
+// MERGE SUMMARY — what changed from the original two files
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// ── QUIET SPACES (from Jonathan's room dashboard) ────────────────────────────
+//
+//   KEPT:
+//   • Room cards showing room number, teacher, class name, and time
+//   • Book Space / Unbook Space button logic (one booking at a time)
+//   • "Already Booked Elsewhere" disabled state when another room is booked
+//   • "Room Full" and "Unavailable" (class in session) disabled states
+//   • Occupancy tracking (currentOccupancy increases/decreases on book/unbook)
+//   • Real-time class-in-session detection using the current clock time
+//
+//   ADDED:
+//   • Attestation checkbox — student must confirm they're free before rooms appear
+//   • Color-coded occupancy bar (green → yellow → orange → red) per room
+//   • "Your Booking" blue status badge on the card the user has booked
+//   • Toast notification (green for success, red for error, auto-dismisses in 3s)
+//   • "Your teacher has been notified" message on successful booking
+//   • Slide-down animation on all toast messages
+//   • Card lift animation on hover (translateY + box-shadow)
+//   • Responsive CSS grid (auto-fills columns based on screen width)
+//
+//   REMOVED:
+//   • Tailwind CSS classes — replaced with inline styles for full control
+//   • Separate "booked: boolean" field — replaced by checking currentOccupancy >= capacity
+//   • Dark mode class toggles (dark:bg-zinc-800 etc.) — handled by inline dark theme
+//   • Grid hardcoded to md:grid-cols-3 — replaced with auto-fill responsive grid
+//   • Simple green/red/gray badge — replaced with dynamic status logic + colors
+//
+// ── OFFICE HOURS (from Jonathan's officehours.tsx) ───────────────────────────
+//
+//   KEPT:
+//   • Office hours entries grouped and displayed by day of the week
+//   • Colored day pill badges (Monday=blue, Tuesday=green, Wednesday=purple, etc.)
+//   • Search bar filtering by teacher name, subject, day, or room
+//   • Teacher form for posting new office hours (name, subject, day, start, end, room)
+//   • "Posted successfully!" confirmation after submitting the form
+//   • Form resets to empty after a successful submission
+//   • Empty state message when no office hours are found
+//
+//   ADDED:
+//   • RSVP / Cancel RSVP booking system — students can reserve a spot
+//   • "RSVP'd" blue badge on cards where the student has booked
+//   • Blue card border + gradient background on RSVP'd sessions
+//   • Toast notifications for RSVP and cancellation actions
+//   • Session count per day shown next to the day divider line
+//   • Total session count shown in the section subtitle
+//   • Collapsible teacher form (toggle with "+ Post Office Hours" button)
+//   • Form closes and resets cleanly after posting
+//
+//   REMOVED:
+//   • Separate "Student View" and "Teacher Form" tab system — merged into one view
+//   • localStorage persistence — removed for simplicity (data resets on refresh)
+//   • Edit/delete buttons for existing entries in the teacher panel
+//   • "Manage Existing Hours" section in the teacher form
+//   • CGPS logo box sub-component — replaced by the unified header
+//   • Georgia/EB Garamond fonts — replaced with IBM Plex Sans + IBM Plex Mono
+//   • Light/navy color scheme — replaced with a dark navy theme across both sections
+//
+// ═════════════════════════════════════════════════════════════════════════════
+
 import { useState, useEffect } from "react";
 // useState → lets us store and update data that the component tracks
 // useEffect → lets us run code when the page loads or when something changes
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPE DEFINITIONS
-// These describe the "shape" of our data objects (TypeScript types)
+// TypeScript "types" act like blueprints — they describe the exact shape every
+// object of that kind must have. If you try to use a field that isn't listed
+// here, TypeScript will show a red error before the code even runs.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Room = {
-  // Defines what fields every room object must have
-  id: number;              // Unique number to identify each room
-  roomNumber: string;      // The room label shown to users (e.g. "302W")
-  className: string;       // Name of the class scheduled in that room
-  classStart: string;      // When the class starts, in "HH:MM" format
-  classEnd: string;        // When the class ends, in "HH:MM" format
-  capacity: number;        // Max students allowed in the room
-  currentOccupancy: number; // How many students are currently booked in
-  teacher: string;         // Name of the supervising teacher
-  userBooked: boolean;     // true if the current user has booked a spot
+  // Every room object in our app must contain ALL of these fields.
+  // If any field is missing or the wrong data type, TypeScript will warn us.
+  id: number;               // Unique number used to tell rooms apart (e.g. 1, 2, 3)
+  roomNumber: string;       // Human-readable label shown on the card (e.g. "302W")
+  className: string;        // The class scheduled to use this room (e.g. "Algebra II")
+  classStart: string;       // 24-hour start time as text, like "09:15" — string for easy comparison
+  classEnd: string;         // 24-hour end time as text, like "10:00"
+  capacity: number;         // Maximum number of students allowed in the room at once
+  currentOccupancy: number; // How many students have booked — increases/decreases as users book
+  teacher: string;          // Full name of the teacher supervising the room
+  userBooked: boolean;      // true = this user has a booking here; false = they do not
+  //                           Used to show "Unbook" instead of "Book" and apply blue card styling
 };
 
 type OfficeHour = {
-  // Defines what fields every office hours entry must have
-  id: number;       // Unique identifier for this entry
-  name: string;     // Teacher's name
-  subject: string;  // Class or subject they teach
-  day: string;      // Day of the week (e.g. "Monday")
-  start: string;    // Start time in "HH:MM" format
-  end: string;      // End time in "HH:MM" format
-  room: string;     // Room number where office hours are held
-  userBooked: boolean; // true if the current user has RSVP'd to this session
+  // Every office hours entry must contain ALL of these fields.
+  // Teachers fill these in using the form; the dummy data uses them too.
+  id: number;          // Unique number used to identify and update this specific entry
+  name: string;        // The teacher's full name (e.g. "Mr. Anderson")
+  subject: string;     // The subject or class they teach (e.g. "AP Biology")
+  day: string;         // Day of the week as a plain string — must match a value in DAYS[]
+  start: string;       // 24-hour start time string (e.g. "08:00")
+  end: string;         // 24-hour end time string (e.g. "08:45")
+  room: string;        // Room number where the session takes place (e.g. "302W")
+  userBooked: boolean; // true = the student has RSVP'd; false = they have not
+  //                      Used to show "Cancel RSVP" vs "RSVP" and apply blue card styling
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,76 +114,101 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER FUNCTIONS
-// Small reusable functions used throughout the component
+// These are small, self-contained functions that do one specific job.
+// They're defined outside the main component so they don't get re-created
+// on every render — they only need to exist once, shared across the whole file.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function formatTime(t: string): string {
-  // Converts 24-hour time (e.g. "13:30") into 12-hour time (e.g. "1:30 PM")
+  // PURPOSE: Converts 24-hour time (e.g. "13:30") into readable 12-hour time (e.g. "1:30 PM")
+  // WHY: Our data stores times in HH:MM format (simpler to compare), but users expect AM/PM
+
   if (!t) return "";
-  // If time is empty or undefined, return an empty string to avoid crashes
+  // Guard clause — if "t" is undefined, null, or an empty string, bail out immediately
+  // Returning "" prevents crashes when a form field hasn't been filled in yet
 
   const [h, m] = t.split(":").map(Number);
-  // Split "13:30" by ":" → ["13", "30"], then convert both to numbers
-  // h = 13 (hours), m = 30 (minutes)
+  // t.split(":") breaks "13:30" into the array ["13", "30"]
+  // .map(Number) converts each string to a number: [13, 30]
+  // Destructuring [h, m] assigns: h = 13, m = 30
 
   const ampm = h >= 12 ? "PM" : "AM";
-  // If hour is 12 or more, it's afternoon (PM); otherwise morning (AM)
+  // Ternary operator: if h is 12 or more → "PM", otherwise → "AM"
+  // 12:00 = noon = PM, 0:00 = midnight = AM
 
   const hour = h % 12 || 12;
-  // Convert 24-hour to 12-hour: 13 % 12 = 1, 0 % 12 = 0 → we make 0 into 12
+  // % is the modulo (remainder) operator
+  // 13 % 12 = 1 (1 PM), 15 % 12 = 3 (3 PM), 12 % 12 = 0 — but we want 12, not 0
+  // The "|| 12" means: if the result is 0 (falsy), use 12 instead
 
   return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
-  // padStart(2, "0") makes single-digit minutes like "5" into "05"
-  // Returns something like "1:30 PM"
+  // Template literal builds the final string, e.g. "1:30 PM"
+  // m.toString().padStart(2, "0") ensures minutes always have 2 digits: 5 → "05"
 }
 
 function isClassNow(start: string, end: string): boolean {
-  // Returns true if the current time falls between the class start and end times
+  // PURPOSE: Checks if a class is currently happening right now
+  // RETURNS: true if the current clock time falls between start and end
+  // WHY: Used to mark rooms as "Unavailable" during scheduled class times
+
   const now = new Date();
-  // Get the current date and time
+  // new Date() creates an object containing the current date AND time
 
   const current = now.toTimeString().slice(0, 5);
-  // toTimeString() gives "13:30:00 GMT..." — we slice only the first 5 chars → "13:30"
+  // toTimeString() returns something like "13:30:00 GMT-0500 (Eastern Standard Time)"
+  // .slice(0, 5) cuts out only the first 5 characters → "13:30"
+  // This gives us the current time in the same HH:MM format as our data
 
   return current >= start && current <= end;
-  // Returns true if current time is within the range [start, end]
+  // String comparison works here because both sides are in "HH:MM" format
+  // "13:30" >= "09:15" → true, "13:30" <= "10:00" → false
+  // The && means BOTH must be true for the class to be in session right now
 }
 
 function getOccupancyColor(current: number, capacity: number): string {
-  // Returns a color string based on how full the room is
+  // PURPOSE: Returns a hex color string based on how full the room is
+  // WHY: Used by the OccupancyBar component to visually signal how crowded a room is
+
   const ratio = current / capacity;
-  // Divide current occupancy by max capacity to get a percentage as a decimal
+  // Divides current students by max capacity to get a decimal between 0 and 1
+  // e.g. 15 students in a room of 20 → 15/20 = 0.75 (75% full)
 
   if (ratio >= 1) return "#ef4444";
-  // 100% full → red
+  // 100% full (or over) → red — room is at capacity, can't book
+  // We check >= 1 first because it's the most urgent condition
 
   if (ratio >= 0.75) return "#f97316";
-  // 75%+ full → orange
+  // 75% to 99% full → orange — getting crowded
 
   if (ratio >= 0.5) return "#eab308";
-  // 50%+ full → yellow
+  // 50% to 74% full → yellow — moderate occupancy
 
   return "#22c55e";
-  // Under 50% → green
+  // Under 50% full → green — plenty of space available
+  // This is the default that runs if none of the above conditions matched
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DUMMY DATA
-// Pre-made fake data so the app works without a real database
+// Hard-coded fake data that lets the app work without a real database.
+// In a real school system this would be fetched from an API or database.
+// Each object must match the Room or OfficeHour type exactly — TypeScript
+// will throw an error at build time if a field is wrong or missing.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DUMMY_ROOMS: Room[] = [
-  // Array of room objects using the Room type defined above
+  // Room[] means this is an array where every element must be a Room object
+  // The "const" means this array reference never changes (though its contents can via state)
   {
     id: 1,
-    roomNumber: "302W",
+    roomNumber: "302W",        // "W" = west wing — real school-style room codes
     className: "Algebra II",
     classStart: "09:15",
     classEnd: "10:00",
     capacity: 20,
-    currentOccupancy: 3,
+    currentOccupancy: 3,       // 3/20 = 15% full → will show green occupancy bar
     teacher: "Mr. Anderson",
-    userBooked: false,
+    userBooked: false,         // No one has booked yet when the page first loads
   },
   {
     id: 2,
@@ -123,8 +217,7 @@ const DUMMY_ROOMS: Room[] = [
     classStart: "11:45",
     classEnd: "12:30",
     capacity: 20,
-    currentOccupancy: 20,
-    // This room is intentionally at full capacity as an example
+    currentOccupancy: 20,      // Intentionally full (20/20) — demonstrates "Room Full" state
     teacher: "Ms. Bennett",
     userBooked: false,
   },
@@ -135,7 +228,7 @@ const DUMMY_ROOMS: Room[] = [
     classStart: "13:20",
     classEnd: "14:10",
     capacity: 18,
-    currentOccupancy: 6,
+    currentOccupancy: 6,       // 6/18 = 33% full → green bar
     teacher: "Mr. Chen",
     userBooked: false,
   },
@@ -146,19 +239,19 @@ const DUMMY_ROOMS: Room[] = [
     classStart: "14:30",
     classEnd: "15:20",
     capacity: 16,
-    currentOccupancy: 9,
+    currentOccupancy: 9,       // 9/16 = 56% full → yellow bar
     teacher: "Dr. Patel",
     userBooked: false,
   },
 ];
 
 const DUMMY_OFFICE_HOURS: OfficeHour[] = [
-  // Array of office hour entries using the OfficeHour type defined above
+  // One entry per teacher, spread across different days to demonstrate the grouping
   {
     id: 1,
     name: "Mr. Anderson",
     subject: "Algebra II",
-    day: "Monday",
+    day: "Monday",             // Must exactly match a string in the DAYS[] constant
     start: "08:00",
     end: "08:45",
     room: "302W",
@@ -201,80 +294,106 @@ const DUMMY_OFFICE_HOURS: OfficeHour[] = [
     day: "Friday",
     start: "12:00",
     end: "12:45",
-    room: "110W",
+    room: "110W",              // This room isn't in DUMMY_ROOMS — that's intentional and fine
     userBooked: false,
   },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
-// Small reusable visual pieces used inside the main component
+// These are smaller React components used inside the main component.
+// Defining them separately keeps the main component readable and lets us
+// reuse them in multiple places without copy-pasting the same JSX.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function DayPill({ day }: { day: string }) {
-  // Renders a colored pill badge showing the day name (e.g. "MONDAY")
-  // { day } destructures the "day" prop from the object passed to this component
+  // PURPOSE: Renders a small colored pill/badge showing the day name (e.g. "MONDAY")
+  // RECEIVES: "day" as a prop — a string like "Monday", "Tuesday", etc.
+  // { day }: { day: string } is "destructured props with a type annotation"
+  //   → It means: this component accepts one prop called "day" which must be a string
 
   const palette: Record<string, { bg: string; text: string }> = {
-    // Maps each day name to a background color and text color
-    Monday:    { bg: "#1e3a5f", text: "#93c5fd" },
-    Tuesday:   { bg: "#1a3a2a", text: "#86efac" },
-    Wednesday: { bg: "#3b1f5e", text: "#c4b5fd" },
-    Thursday:  { bg: "#3b2a0e", text: "#fcd34d" },
-    Friday:    { bg: "#3b1414", text: "#fca5a5" },
+    // Record<string, { bg: string; text: string }> is a TypeScript type meaning:
+    // "an object whose keys are strings and whose values are objects with bg and text string fields"
+    // Each day gets a unique background color (bg) and contrasting text color (text)
+    Monday:    { bg: "#1e3a5f", text: "#93c5fd" }, // Deep blue bg, light blue text
+    Tuesday:   { bg: "#1a3a2a", text: "#86efac" }, // Deep green bg, light green text
+    Wednesday: { bg: "#3b1f5e", text: "#c4b5fd" }, // Deep purple bg, light purple text
+    Thursday:  { bg: "#3b2a0e", text: "#fcd34d" }, // Deep amber bg, yellow text
+    Friday:    { bg: "#3b1414", text: "#fca5a5" }, // Deep red bg, light red text
   };
 
   const colors = palette[day] || { bg: "#1e293b", text: "#94a3b8" };
-  // Use the day's color pair, or fall back to a neutral gray if the day isn't found
+  // Look up the color pair for this day in the palette object
+  // The || operator provides a fallback: if "day" isn't in the palette (e.g. a typo),
+  // we use a neutral dark slate color instead of crashing
 
   return (
     <span style={{
-      background: colors.bg,    // Colored background based on day
-      color: colors.text,       // Colored text based on day
-      padding: "3px 12px",
-      borderRadius: 999,        // Makes it a fully rounded "pill" shape
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: "0.1em",
-      textTransform: "uppercase" as const, // Makes text all-caps
-      fontFamily: "'IBM Plex Mono', monospace",
+      background: colors.bg,              // Unique background color per day
+      color: colors.text,                 // Unique text color per day
+      padding: "3px 12px",               // Small vertical, larger horizontal padding → pill shape
+      borderRadius: 999,                  // Very large radius makes it a perfect pill/capsule shape
+      fontSize: 11,                       // Small text to fit compactly next to other elements
+      fontWeight: 700,                    // Bold so it reads clearly at small size
+      letterSpacing: "0.1em",            // Slightly spread-out letters look better at small sizes
+      textTransform: "uppercase" as const, // Forces text to ALL CAPS regardless of input
+      // "as const" tells TypeScript this is a specific CSS value, not just any string
+      fontFamily: "'IBM Plex Mono', monospace", // Monospace font for the data/label aesthetic
     }}>
       {day}
-      {/* Renders the day name text inside the pill */}
+      {/* Renders the actual day name text passed in as a prop */}
     </span>
   );
 }
 
 function OccupancyBar({ current, capacity }: { current: number; capacity: number }) {
-  // Renders a horizontal bar showing how full a room is
+  // PURPOSE: Renders a horizontal progress bar showing how full a room is
+  // RECEIVES: "current" (how many booked) and "capacity" (the max allowed)
+  // Both are numbers — TypeScript enforces this with the type annotation
+
   const pct = Math.min((current / capacity) * 100, 100);
-  // Calculate percentage full, capped at 100% using Math.min
+  // Calculate fill percentage: e.g. 15 students out of 20 capacity = 75%
+  // (current / capacity) * 100 gives a number between 0 and 100+
+  // Math.min(..., 100) caps it at 100 so the bar never overflows its container
+  // Math.min returns the smaller of the two values passed to it
 
   const color = getOccupancyColor(current, capacity);
-  // Get the appropriate color for the fill level
+  // Calls our helper function defined above to get the right color
+  // e.g. 75% full → "#f97316" (orange)
 
   return (
     <div style={{ marginTop: 10 }}>
-      {/* Container with spacing above it */}
+      {/* Outer container — adds breathing room above the bar */}
+
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-        {/* Row with label on the left and numbers on the right */}
+        {/* Row layout: label "Occupancy" on left, numbers "15/20" on right */}
+        {/* justifyContent: "space-between" pushes the two children to opposite ends */}
+
         <span style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
           Occupancy
+          {/* Static label — always reads "OCCUPANCY" */}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, color, fontFamily: "'IBM Plex Mono', monospace" }}>
           {current}/{capacity}
-          {/* Shows current number / max number */}
+          {/* Dynamic fraction — updates whenever current or capacity changes */}
+          {/* Uses the same color as the bar fill for visual consistency */}
         </span>
       </div>
+
       <div style={{ height: 6, background: "#1e293b", borderRadius: 999, overflow: "hidden" }}>
-        {/* Gray track behind the fill bar */}
+        {/* The "track" — the gray background bar that the fill sits on top of */}
+        {/* overflow: "hidden" clips the fill bar so it can't peek out past the rounded ends */}
+
         <div style={{
-          height: "100%",
-          width: `${pct}%`,      // Width is the percentage full
-          background: color,     // Color changes based on fullness
-          borderRadius: 999,
-          transition: "width 0.4s ease",  // Smooth animation if value changes
+          height: "100%",               // Fill bar always matches the track's full height
+          width: `${pct}%`,             // Width is the percentage — this is what makes the bar fill up
+          background: color,             // Color changes dynamically based on fullness
+          borderRadius: 999,            // Rounded ends on the fill bar too
+          transition: "width 0.4s ease", // Smooth animation: if occupancy changes, the bar slides
+          //                               The "0.4s" is the duration, "ease" means start/end slowly
         }} />
+        {/* This inner div IS the colored fill bar — its width drives the visual */}
       </div>
     </div>
   );
@@ -282,171 +401,214 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
+// This is the single component that renders the entire page.
+// "export default" means this is the component Next.js will use as the page.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function CGPSDashboard() {
-  // The main exported component — this is what gets rendered as the page
+  // Everything inside this function is re-evaluated every time state changes.
+  // React automatically re-renders (re-runs this function and updates the DOM)
+  // whenever any useState value is updated via its setter function.
 
-  // ── Tab state ──
+  // ── Tab state ──────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<"rooms" | "officehours">("rooms");
-  // Tracks which tab is currently selected: "rooms" or "officehours"
-  // useState<"rooms" | "officehours"> limits the value to only those two strings
+  // activeTab → the currently selected tab: either "rooms" or "officehours"
+  // setActiveTab → the function we call to switch tabs
+  // useState<"rooms" | "officehours"> → TypeScript restricts the value to only those two strings
+  // "rooms" → the initial/default value when the page first loads
 
-  // ── Room state ──
+  // ── Room booking state ─────────────────────────────────────────────────────
   const [rooms, setRooms] = useState<Room[]>(DUMMY_ROOMS);
-  // Stores the array of all room objects; starts with the dummy data
+  // rooms → the live array of room objects that React is tracking
+  // setRooms → the function used to update the array (triggers a re-render)
+  // DUMMY_ROOMS → the starting value; used once on first load
 
   const [bookedRoomId, setBookedRoomId] = useState<number | null>(null);
-  // Tracks which room the current user has booked (by its id), or null if none
+  // Tracks which room ID (if any) the current user has booked
+  // null → user hasn't booked anything yet
+  // A number → the id of the room they've booked
+  // This is what prevents double-booking: if it's not null, we disable other Book buttons
 
   const [roomMessage, setRoomMessage] = useState<string | null>(null);
-  // Stores a toast message to show after booking/unbooking a room
+  // Holds the text of the toast message shown after booking/unbooking a room
+  // null → no message currently showing
+  // A string → the message to display (e.g. "✓ Booked a spot in Room 302W!")
 
   const [attested, setAttested] = useState(false);
-  // Tracks whether the user has checked the "I'm not in class" checkbox
+  // Controls the attestation gate on the Quiet Spaces tab
+  // false (default) → rooms are hidden; the checkbox prompt is shown instead
+  // true → user has confirmed they're not in class; room cards are revealed
 
-  // ── Office Hours state ──
+  // ── Office hours state ─────────────────────────────────────────────────────
   const [officeHours, setOfficeHours] = useState<OfficeHour[]>(DUMMY_OFFICE_HOURS);
-  // Stores the array of all office hour entries; starts with the dummy data
+  // officeHours → the live array of office hours entries
+  // Starts with dummy data; can grow when a teacher submits the form
 
   const [ohMessage, setOhMessage] = useState<string | null>(null);
-  // Stores a toast message to show after booking/unbooking office hours
+  // Same pattern as roomMessage but for the office hours tab
+  // Shows RSVP confirmations and error messages
 
   const [ohSearch, setOhSearch] = useState("");
-  // Stores the text typed into the office hours search bar
+  // Stores whatever text the user has typed into the office hours search bar
+  // Default is "" (empty string) = no filter applied = all entries shown
+  // Updates on every keystroke via the input's onChange handler
 
-  // ── Teacher Form state (for adding new office hours) ──
+  // ── Teacher form state ─────────────────────────────────────────────────────
   const [showTeacherForm, setShowTeacherForm] = useState(false);
-  // Controls whether the "Add Office Hours" form is visible
+  // Controls whether the collapsible teacher form is visible
+  // false (default) → form is hidden; only the "+ Post Office Hours" button shows
+  // true → the form slides into view below the button
 
   const [teacherForm, setTeacherForm] = useState({
     name: "", subject: "", day: "Monday", start: "", end: "", room: ""
   });
-  // Stores the values typed into the teacher form fields
-  // Starts with an empty form and Monday as default day
+  // Stores the current values of every field in the teacher form
+  // Each key matches a field in the OfficeHour type (except id and userBooked)
+  // "Monday" is pre-selected as a sensible default for the day dropdown
+  // All text fields start empty so the form appears blank
 
   const [formSaved, setFormSaved] = useState(false);
-  // Controls whether the "Saved!" confirmation message shows after submitting the form
+  // Controls the "✓ Posted successfully!" message that briefly appears after submitting
+  // false (default) → message is hidden
+  // true → message appears; auto-reset to false after 2.5 seconds via setTimeout
 
-  // ── Auto-dismiss messages after 3 seconds ──
+  // ── Auto-dismiss toast messages ────────────────────────────────────────────
   useEffect(() => {
+    // useEffect runs AFTER the component renders, whenever its dependencies change
+    // This specific effect watches "roomMessage" and runs whenever it gets a new value
+
     if (!roomMessage) return;
-    // If there's no message, do nothing
+    // If roomMessage is null or empty, there's nothing to dismiss — exit early
 
     const t = setTimeout(() => setRoomMessage(null), 3000);
-    // After 3000ms (3 seconds), clear the room message
+    // setTimeout schedules a function to run after a delay
+    // After 3000 milliseconds (3 seconds), we call setRoomMessage(null) to clear the toast
+    // "t" stores the timer's ID so we can cancel it if needed
 
     return () => clearTimeout(t);
-    // Cleanup: cancel the timer if the component re-renders before 3s is up
+    // This is the "cleanup" function — React calls it before the next effect runs
+    // If roomMessage changes again before 3 seconds are up, this cancels the old timer
+    // Prevents bugs where multiple timers stack up and fight each other
   }, [roomMessage]);
-  // This runs every time roomMessage changes
+  // The dependency array [roomMessage] means: re-run this effect whenever roomMessage changes
+  // If we passed [] (empty), it would only run once on mount; if we passed nothing, every render
 
   useEffect(() => {
+    // Same exact pattern as above, but for the office hours message
     if (!ohMessage) return;
-    // If there's no message, do nothing
-
     const t = setTimeout(() => setOhMessage(null), 3000);
-    // After 3 seconds, clear the office hours message
-
     return () => clearTimeout(t);
-    // Cleanup the timer
   }, [ohMessage]);
-  // This runs every time ohMessage changes
 
   // ─────────────────────────────────────────────────────────────────────────
   // ROOM BOOKING FUNCTIONS
+  // These functions update React state, which triggers an automatic re-render.
+  // We never mutate (directly change) state — we always use the setter function.
   // ─────────────────────────────────────────────────────────────────────────
 
   function bookRoom(id: number) {
-    // Called when user clicks "Book Space" on a room card
+    // Called when the user clicks "Book Space" on a room card
+    // "id" is the room's unique identifier passed in from the onClick handler
 
     if (bookedRoomId !== null) {
-      // If the user already has a booking somewhere, prevent double-booking
+      // Guard: if bookedRoomId already holds a number, the user has another booking
+      // We prevent them from booking a second room until they unbook the first
       setRoomMessage("You already have a room booked. Unbook it first.");
       return;
-      // Exit the function early
+      // "return" exits the function immediately — nothing below this line runs
     }
 
     setRooms(prev =>
-      // prev is the current rooms array; we map over it to update one entry
+      // setRooms receives a function instead of a value — this is called the "functional update" form
+      // "prev" is guaranteed to be the most up-to-date state, even if React batched updates
       prev.map(room => {
+        // .map() creates a NEW array by transforming each element
+        // React requires we return a new array/object rather than mutating the old one
+
         if (room.id !== id) return room;
-        // If this room isn't the one being booked, return it unchanged
+        // If this isn't the room being booked, return it completely unchanged
 
         if (room.currentOccupancy >= room.capacity) {
+          // Double-check capacity even though the button should already be disabled
+          // This handles edge cases where two users book simultaneously
           setRoomMessage(`Room ${room.roomNumber} is full.`);
           return room;
-          // Don't book if room is already at capacity
+          // Return the room unchanged
         }
 
         const newOcc = room.currentOccupancy + 1;
-        // Increment occupancy by 1
+        // Calculate the new occupancy before building the updated room object
 
         setBookedRoomId(id);
-        // Remember that the user booked this room
+        // Record that the user has now booked this room
+        // This disables the "Book Space" button on all other room cards
 
         setRoomMessage(`✓ Booked a spot in Room ${room.roomNumber}! Your teacher has been notified.`);
-        // Show a confirmation message
+        // Set the success toast message — the ✓ prefix is used to detect success vs error
 
         return { ...room, currentOccupancy: newOcc, userBooked: true };
-        // Return the room with updated occupancy and userBooked = true
-        // The spread ...room copies all other fields unchanged
+        // Return a NEW object with updated fields — never mutate the original
+        // { ...room } copies all existing fields; then we override just the two that changed
       })
     );
   }
 
   function unbookRoom(id: number) {
-    // Called when user clicks "Unbook" on a room card
+    // Called when the user clicks "Unbook Space" on a room card
 
     setRooms(prev =>
       prev.map(room => {
         if (room.id !== id) return room;
-        // Skip rooms that don't match
+        // Skip all rooms that don't match the one being unbooked
 
         const newOcc = Math.max(room.currentOccupancy - 1, 0);
-        // Decrease occupancy by 1, but never below 0 (Math.max prevents negatives)
+        // Decrement occupancy by 1
+        // Math.max(..., 0) ensures the count never goes negative (a safety net)
+        // Math.max(a, b) returns whichever argument is larger
 
         setBookedRoomId(null);
-        // User no longer has a booked room
+        // Clear the booked room tracker — user is now free to book a different room
 
         setRoomMessage(`✓ Removed your booking from Room ${room.roomNumber}.`);
-        // Show confirmation
 
         return { ...room, currentOccupancy: newOcc, userBooked: false };
-        // Return updated room with occupancy decreased and userBooked = false
+        // Return the room with decremented occupancy and userBooked cleared
       })
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // OFFICE HOURS BOOKING FUNCTIONS
+  // Same pattern as the room functions — functional updates, no mutation
   // ─────────────────────────────────────────────────────────────────────────
 
   function bookOfficeHour(id: number) {
-    // Called when user clicks "RSVP" on an office hours card
+    // Called when the user clicks "RSVP" on an office hours card
 
     setOfficeHours(prev =>
       prev.map(oh => {
         if (oh.id !== id) return oh;
-        // Skip entries that don't match
+        // Skip entries that don't match the clicked card
 
         if (oh.userBooked) {
+          // Prevent booking the same session twice
+          // This shouldn't happen since the button is hidden after booking,
+          // but it's good defensive programming to check anyway
           setOhMessage("You've already RSVP'd to this session.");
           return oh;
-          // Prevent double-booking the same session
         }
 
         setOhMessage(`✓ RSVP'd for ${oh.name}'s office hours on ${oh.day}!`);
-        // Show confirmation message
+        // Template literal builds a personalized confirmation message
 
         return { ...oh, userBooked: true };
-        // Return the entry with userBooked set to true
+        // Return updated entry — spread copies all fields, then override userBooked
       })
     );
   }
 
   function unbookOfficeHour(id: number) {
-    // Called when user clicks "Cancel RSVP" on an office hours card
+    // Called when the user clicks "Cancel RSVP" on an office hours card
 
     setOfficeHours(prev =>
       prev.map(oh => {
@@ -454,71 +616,84 @@ export default function CGPSDashboard() {
         // Skip non-matching entries
 
         setOhMessage(`✓ Cancelled your RSVP with ${oh.name}.`);
-        // Show confirmation
 
         return { ...oh, userBooked: false };
-        // Mark this entry as no longer booked by the user
+        // Clear the user's RSVP on this entry
       })
     );
   }
 
   function handleTeacherFormSubmit() {
-    // Called when teacher clicks "Post Hours" in the form
+    // Called when the teacher clicks "Post Hours" in the form
 
     const { name, subject, start, end, room } = teacherForm;
-    // Destructure the form fields we need to validate
+    // Destructuring: pulls these five fields out of the teacherForm object
+    // Equivalent to writing: const name = teacherForm.name; const subject = teacherForm.subject; etc.
 
     if (!name || !subject || !start || !end || !room) return;
-    // If any required field is empty, stop here (don't submit)
+    // Validate all required fields — if ANY are empty/falsy, stop and don't submit
+    // The "!" converts the string to a boolean: empty string "" → false → !false = true → we return early
+    // "day" is not validated because it always has "Monday" as a default — it can never be empty
 
     const newEntry: OfficeHour = {
-      ...teacherForm,                // Copy all form fields into the new entry
-      id: Date.now(),                // Use current timestamp as a unique id
-      userBooked: false,             // New entry starts with no one booked
+      ...teacherForm,    // Spread all form fields (name, subject, day, start, end, room) into the new object
+      id: Date.now(),    // Date.now() returns the current time in milliseconds — always a unique number
+      //                    e.g. 1712345678901 — effectively a unique ID
+      userBooked: false, // A brand new entry always starts with nobody booked
     };
 
     setOfficeHours(prev => [...prev, newEntry]);
-    // Add the new entry to the existing office hours array
+    // [...prev, newEntry] creates a new array with all existing entries PLUS the new one at the end
+    // The spread "..." copies all existing items; we can't use prev.push() because that mutates state
 
     setTeacherForm({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
-    // Reset the form back to empty
+    // Reset all form fields to their initial empty state so the form is ready for the next entry
 
     setFormSaved(true);
-    // Show the "Saved!" message
+    // Show the "✓ Posted successfully!" message
 
     setTimeout(() => setFormSaved(false), 2500);
-    // Hide it after 2.5 seconds
+    // Hide the success message after 2.5 seconds
+    // We don't need a cleanup here (vs useEffect) because this is a one-shot action, not a subscription
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // DERIVED DATA
-  // Computed values based on current state — recalculated on every render
+  // These are NOT stored in state — they're computed fresh on every render
+  // from the current state values. React re-runs the whole component function
+  // when state changes, so these automatically stay up-to-date.
   // ─────────────────────────────────────────────────────────────────────────
 
   const filteredOH = officeHours.filter(oh =>
-    // Filter office hours based on what the user typed in the search box
+    // .filter() returns a new array containing only the items that pass the test
+    // The test: does this entry match the search string in ANY of its text fields?
     oh.name.toLowerCase().includes(ohSearch.toLowerCase()) ||
-    // Check if teacher name matches (case-insensitive)
+    // .toLowerCase() on both sides makes the search case-insensitive
+    // "anderson".includes("and") → true, "anderson".includes("xyz") → false
+    // The || (OR) means the entry passes if ANY of the four checks is true
     oh.subject.toLowerCase().includes(ohSearch.toLowerCase()) ||
-    // Check if subject matches
     oh.day.toLowerCase().includes(ohSearch.toLowerCase()) ||
-    // Check if day matches
     oh.room.toLowerCase().includes(ohSearch.toLowerCase())
-    // Check if room matches
+    // If ohSearch is "" (empty string), every .includes("") returns true
+    // So an empty search box shows all entries — perfect default behavior
   );
 
   const groupedOH = DAYS.reduce((acc: Record<string, OfficeHour[]>, day) => {
-    // Group the filtered office hours by day of the week
+    // .reduce() transforms an array into a single value — here, an object grouped by day
+    // We iterate over the DAYS array (["Monday", "Tuesday", ...]) and build up "acc"
+    // "acc" starts as {} and we add a key for each day that has entries
+
     const entries = filteredOH.filter(oh => oh.day === day);
-    // Get all office hours entries for this specific day
+    // For each day we're iterating over, find all filtered entries that belong to it
 
     if (entries.length > 0) acc[day] = entries;
-    // Only add the day to the group if it has at least one entry
+    // Only add this day to the grouped object if it has at least one entry
+    // This prevents rendering empty day sections with no cards underneath
 
     return acc;
-    // Return the accumulator to build up the grouped object
+    // Return the accumulator so the next iteration can build on it
   }, {});
-  // Start with an empty object {} and build it up day by day
+  // The second argument {} is the initial value of acc — we start with an empty object
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER — the JSX that gets displayed in the browser
