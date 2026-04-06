@@ -1,6 +1,6 @@
 "use client";
 // Tells Next.js this file runs in the browser (not server-side)
-// Required for all interactive features like useState, clicks, etc.
+// Required for all features like useState, clicks, etc.
 
 import { useState, useEffect } from "react";
 // useState → lets us store and update data that the component tracks
