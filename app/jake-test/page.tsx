@@ -2,69 +2,6 @@
 // Tells Next.js this file runs in the browser (not server-side)
 // Required for all interactive features like useState, clicks, etc.
 
-// ═════════════════════════════════════════════════════════════════════════════
-// MERGE SUMMARY — what changed from the original two files
-// ═════════════════════════════════════════════════════════════════════════════
-//
-// ── QUIET SPACES (from Jonathan's room dashboard) ────────────────────────────
-//
-//   KEPT:
-//   • Room cards showing room number, teacher, class name, and time
-//   • Book Space / Unbook Space button logic (one booking at a time)
-//   • "Already Booked Elsewhere" disabled state when another room is booked
-//   • "Room Full" and "Unavailable" (class in session) disabled states
-//   • Occupancy tracking (currentOccupancy increases/decreases on book/unbook)
-//   • Real-time class-in-session detection using the current clock time
-//
-//   ADDED:
-//   • Attestation checkbox — student must confirm they're free before rooms appear
-//   • Color-coded occupancy bar (green → yellow → orange → red) per room
-//   • "Your Booking" blue status badge on the card the user has booked
-//   • Toast notification (green for success, red for error, auto-dismisses in 3s)
-//   • "Your teacher has been notified" message on successful booking
-//   • Slide-down animation on all toast messages
-//   • Card lift animation on hover (translateY + box-shadow)
-//   • Responsive CSS grid (auto-fills columns based on screen width)
-//
-//   REMOVED:
-//   • Tailwind CSS classes — replaced with inline styles for full control
-//   • Separate "booked: boolean" field — replaced by checking currentOccupancy >= capacity
-//   • Dark mode class toggles (dark:bg-zinc-800 etc.) — handled by inline dark theme
-//   • Grid hardcoded to md:grid-cols-3 — replaced with auto-fill responsive grid
-//   • Simple green/red/gray badge — replaced with dynamic status logic + colors
-//
-// ── OFFICE HOURS (from Jonathan's officehours.tsx) ───────────────────────────
-//
-//   KEPT:
-//   • Office hours entries grouped and displayed by day of the week
-//   • Colored day pill badges (Monday=blue, Tuesday=green, Wednesday=purple, etc.)
-//   • Search bar filtering by teacher name, subject, day, or room
-//   • Teacher form for posting new office hours (name, subject, day, start, end, room)
-//   • "Posted successfully!" confirmation after submitting the form
-//   • Form resets to empty after a successful submission
-//   • Empty state message when no office hours are found
-//
-//   ADDED:
-//   • RSVP / Cancel RSVP booking system — students can reserve a spot
-//   • "RSVP'd" blue badge on cards where the student has booked
-//   • Blue card border + gradient background on RSVP'd sessions
-//   • Toast notifications for RSVP and cancellation actions
-//   • Session count per day shown next to the day divider line
-//   • Total session count shown in the section subtitle
-//   • Collapsible teacher form (toggle with "+ Post Office Hours" button)
-//   • Form closes and resets cleanly after posting
-//
-//   REMOVED:
-//   • Separate "Student View" and "Teacher Form" tab system — merged into one view
-//   • localStorage persistence — removed for simplicity (data resets on refresh)
-//   • Edit/delete buttons for existing entries in the teacher panel
-//   • "Manage Existing Hours" section in the teacher form
-//   • CGPS logo box sub-component — replaced by the unified header
-//   • Georgia/EB Garamond fonts — replaced with IBM Plex Sans + IBM Plex Mono
-//   • Light/navy color scheme — replaced with a dark navy theme across both sections
-//
-// ═════════════════════════════════════════════════════════════════════════════
-
 import { useState, useEffect } from "react";
 // useState → lets us store and update data that the component tracks
 // useEffect → lets us run code when the page loads or when something changes
