@@ -1,0 +1,9 @@
+<svg width="1200" height="190" viewBox="0 0 1200 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Columbia Grammar and Preparatory School</title>
+  <desc id="desc">School wordmark with Columbia in blue and the remaining text in charcoal.</desc>
+  <rect width="1200" height="190" fill="transparent"/>
+  <text x="0" y="72" font-family="'Helvetica Neue', Arial, sans-serif" font-size="74" font-weight="800" letter-spacing="1" fill="#13A3DD">COLUMBIA</text>
+  <text x="430" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="74" font-weight="500" fill="#242228">GRAMMAR</text>
+  <text x="1007" y="72" font-family="'Helvetica Neue', Arial, sans-serif" font-size="74" font-weight="700" fill="#13A3DD">&amp;</text>
+  <text x="0" y="162" font-family="Georgia, 'Times New Roman', serif" font-size="98" font-weight="500" fill="#242228">PREPARATORY SCHOOL</text>
+</svg>
