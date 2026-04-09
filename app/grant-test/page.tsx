@@ -22,33 +22,17 @@ export default function Grant() {
                         <ambientLight intensity={Math.PI / 2} />
 
                         <MusicHallwayModel position={[0, 0, 0]} />
-                        <MusicRoom1Model 
+
+                        <Room 
+                        model={MusicRoom1Model}
                         position={[0.8, -0.57, 2.1]}
                         rotation={[0, Math.PI, 0]}
-                        color = {hovered ? [0.5, 0.6, 1] : 'white'}
-                        hovered = {hovered}
-                        onPointerOver={(e) => {
-                            e.stopPropagation()
-                            setHovered(true)
-                        }}
-                        onPointerOut={(e) => {
-                            e.stopPropagation()
-                            setHovered(false)
-                        }}
                         />
-                        <MusicRoom2Model
+
+                        <Room 
+                        model={MusicRoom2Model}
                         position={[-5.93, 0.17, -5.2]}
                         rotation={[0, Math.PI, 0]}
-                        color = {hovered ? [0.5, 0.6, 1] : 'white'}
-                        hovered = {hovered}
-                        onPointerOver={(e) => {
-                            e.stopPropagation()
-                            setHovered(true)
-                        }}
-                        onPointerOut={(e) => {
-                            e.stopPropagation()
-                            setHovered(false)
-                        }}
                         />
                         
                         <OrbitControls />
@@ -56,4 +40,31 @@ export default function Grant() {
             </Canvas>
         </div>
     )
+}
+
+
+function Room({ model: Model, ...props }) {
+  const [hovered, setHovered] = React.useState(false)
+  const [active, setActive] = React.useState(false)
+
+  return (
+    <Model
+      {...props}
+      color = {hovered ? [0.5, 0.6, 1] : 'white'}
+      hovered={hovered}
+      active={active}
+      onPointerEnter={(e) => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
+      onPointerLeave={(e) => {
+        e.stopPropagation()
+        setHovered(false)
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        setActive(!active)
+      }}
+    />
+  )
 }
