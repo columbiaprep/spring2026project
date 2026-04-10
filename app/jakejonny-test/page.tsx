@@ -253,14 +253,14 @@ function DayPill({ day }: { day: string }) {
     // Record<string, { bg: string; text: string }> is a TypeScript type meaning:
     // "an object whose keys are strings and whose values are objects with bg and text string fields"
     // Each day gets a unique background color (bg) and contrasting text color (text)
-    Monday:    { bg: "#dff3fd", text: "#0d77b0" }, // Light blue tint, deep blue text
-    Tuesday:   { bg: "#e6f4ee", text: "#2e7d5e" }, // Soft green tint, forest text
-    Wednesday: { bg: "#ecebfb", text: "#5b4aa0" }, // Soft violet tint, indigo text
-    Thursday:  { bg: "#fef3df", text: "#a36405" }, // Warm amber tint, bronze text
-    Friday:    { bg: "#fde8e8", text: "#b45353" }, // Soft red tint, muted red text
+    Monday:    { bg: "#1e3a5f", text: "#93c5fd" }, // Deep blue bg, light blue text
+    Tuesday:   { bg: "#1a3a2a", text: "#86efac" }, // Deep green bg, light green text
+    Wednesday: { bg: "#3b1f5e", text: "#c4b5fd" }, // Deep purple bg, light purple text
+    Thursday:  { bg: "#3b2a0e", text: "#fcd34d" }, // Deep amber bg, yellow text
+    Friday:    { bg: "#3b1414", text: "#fca5a5" }, // Deep red bg, light red text
   };
 
-  const colors = palette[day] || { bg: "#d7e2ee", text: "#5a6675" };
+  const colors = palette[day] || { bg: "#1e293b", text: "#94a3b8" };
   // Look up the color pair for this day in the palette object
   // The || operator provides a fallback: if "day" isn't in the palette (e.g. a typo),
   // we use a neutral dark slate color instead of crashing
@@ -307,7 +307,7 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
         {/* Row layout: label "Occupancy" on left, numbers "15/20" on right */}
         {/* justifyContent: "space-between" pushes the two children to opposite ends */}
 
-        <span style={{ fontSize: 11, color: "#5a6675", textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+        <span style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
           Occupancy
           {/* Static label — always reads "OCCUPANCY" */}
         </span>
@@ -318,7 +318,7 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
         </span>
       </div>
 
-      <div style={{ height: 6, background: "#d7e2ee", borderRadius: 999, overflow: "hidden" }}>
+      <div style={{ height: 6, background: "#1e293b", borderRadius: 999, overflow: "hidden" }}>
         {/* The "track" — the gray background bar that the fill sits on top of */}
         {/* overflow: "hidden" clips the fill bar so it can't peek out past the rounded ends */}
 
@@ -332,6 +332,58 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
         }} />
         {/* This inner div IS the colored fill bar — its width drives the visual */}
       </div>
+    </div>
+  );
+}
+
+function CGPSLogo() {
+  // Inline text-based logo so this page can render the mark without an external asset
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "flex-end",
+        lineHeight: 0.82,
+        paddingBottom: 8,
+      }}
+      aria-label="CGPS logo"
+    >
+      <span
+        style={{
+          fontFamily: "'Times New Roman', Georgia, serif",
+          fontSize: 56,
+          fontWeight: 400,
+          color: "#ffffff",
+          letterSpacing: "-0.07em",
+        }}
+      >
+        C
+      </span>
+      <span
+        style={{
+          fontFamily: "'IBM Plex Sans', 'Segoe UI', sans-serif",
+          fontSize: 56,
+          fontWeight: 700,
+          color: "#ffffff",
+          letterSpacing: "-0.07em",
+          marginLeft: -4,
+        }}
+      >
+        GPS
+      </span>
+
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: 1,
+          bottom: 0,
+          width: 44,
+          height: 7,
+          background: "#46b2e9",
+        }}
+      />
     </div>
   );
 }
@@ -640,12 +692,12 @@ export default function CGPSDashboard() {
     <div style={{
       minHeight: "100vh",
       // Page is at least as tall as the browser window
-      background: "#f2f6fb",
-      // Soft light blue page background to match the school branding
+      background: "#0a0f1a",
+      // Very dark navy background
       fontFamily: "'IBM Plex Sans', 'Segoe UI', sans-serif",
-      // Main body font stack for readable UI text
-      color: "#242228",
-      // Default charcoal text color used across the page
+      // Clean modern font
+      color: "#e2e8f0",
+      // Light gray text for dark background
     }}>
 
       {/* ── Google Font Import ── */}
@@ -656,8 +708,8 @@ export default function CGPSDashboard() {
         * { box-sizing: border-box; }
         /* Includes padding/border in element width calculations — prevents layout surprises */
 
-        ::-webkit-scrollbar { width: 6px; background: #f2f6fb; }
-        ::-webkit-scrollbar-thumb { background: #d7e2ee; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 6px; background: #0a0f1a; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
         /* Custom thin scrollbar styling */
 
         input, select { outline: none; }
@@ -685,9 +737,9 @@ export default function CGPSDashboard() {
 
       {/* ── Header ── */}
       <header style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #eef5fb 100%)",
-        // Header fades from white into a pale blue so it blends into the page
-        borderBottom: "1px solid #d7e2ee",
+        background: "linear-gradient(180deg, #0d1526 0%, #0a0f1a 100%)",
+        // Subtle gradient from slightly lighter to the page background
+        borderBottom: "1px solid #1e293b",
         // Thin separator line at the bottom of the header
         padding: "0 32px",
         position: "sticky",
@@ -699,40 +751,37 @@ export default function CGPSDashboard() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           {/* Centers the header content with a max width */}
 
-          {/* School logo row */}
-          <div style={{ paddingTop: 18, paddingBottom: 6 }}>
-            <img
-              // Loads the logo file from /public so Next serves it statically
-              src="/cgps-logo.svg"
-              // Accessible alt text for screen readers or if image fails to load
-              alt="Columbia Grammar & Preparatory School"
-              style={{
-                // Lets logo scale down on small screens
-                width: "100%",
-                // Prevents the logo from becoming too wide on desktop
-                maxWidth: 640,
-                // Keeps original logo ratio while resizing
-                height: "auto",
-                // Removes default inline-image spacing quirks
-                display: "block",
-              }}
-            />
+          {/* School name row */}
+          <div style={{ paddingTop: 20, paddingBottom: 4 }}>
+            <div style={{ marginBottom: 10 }}>
+              <CGPSLogo />
+            </div>
+            <div style={{
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 10,
+              color: "#38bdf8",
+              // Sky blue accent color
+              letterSpacing: "0.2em",
+              textTransform: "uppercase" as const,
+            }}>
+              Columbia Grammar & Preparatory School
+            </div>
           </div>
 
           {/* Title + subtitle row */}
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", paddingBottom: 0 }}>
             <div>
               <h1 style={{
-                fontSize: 28,
+                fontSize: 26,
                 fontWeight: 700,
-                color: "#242228",
+                color: "#f8fafc",
                 margin: 0,
                 letterSpacing: "-0.03em",
                 // Slightly tight letter spacing for a modern look
               }}>
                 CGPS Portal
               </h1>
-              <p style={{ fontSize: 13, color: "#5a6675", margin: "4px 0 0", fontWeight: 500 }}>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "2px 0 0", fontWeight: 400 }}>
                 Room availability · Office hours · Bookings
               </p>
             </div>
@@ -741,11 +790,11 @@ export default function CGPSDashboard() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 16 }}>
               <div style={{
                 width: 8, height: 8, borderRadius: "50%",
-                background: "#13a3dd",
-                boxShadow: "0 0 0 3px rgba(19,163,221,0.2)",
-                // Glowing brand-blue dot to indicate "live" status
+                background: "#22c55e",
+                boxShadow: "0 0 0 3px rgba(34,197,94,0.2)",
+                // Glowing green dot to indicate "live" status
               }} />
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5a6675" }}>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#64748b" }}>
                 LIVE
               </span>
             </div>
@@ -771,11 +820,11 @@ export default function CGPSDashboard() {
                   border: "none",
                   fontWeight: 600,
                   fontSize: 13,
-                  background: activeTab === tab.id ? "#f2f9fe" : "transparent",
-                  // Active tab gets a pale blue background
-                  color: activeTab === tab.id ? "#13a3dd" : "#6a7a8a",
+                  background: activeTab === tab.id ? "#0f172a" : "transparent",
+                  // Active tab gets a darker background
+                  color: activeTab === tab.id ? "#38bdf8" : "#475569",
                   // Active tab text is blue; inactive is gray
-                  borderTop: activeTab === tab.id ? "2px solid #13a3dd" : "2px solid transparent",
+                  borderTop: activeTab === tab.id ? "2px solid #38bdf8" : "2px solid transparent",
                   // Blue top border on the active tab
                 }}
               >
@@ -800,18 +849,18 @@ export default function CGPSDashboard() {
 
             {/* Section header */}
             <div style={{ marginBottom: 28 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#242228", margin: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#f1f5f9", margin: 0 }}>
                 Available Quiet Spaces
               </h2>
-              <p style={{ fontSize: 13, color: "#5a6675", marginTop: 4 }}>
+              <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
                 Book a free space to study or work — your teacher will be notified automatically
               </p>
             </div>
 
             {/* Attestation checkbox — must be checked before booking */}
             <div style={{
-              background: "#ffffff",
-              border: `1px solid ${attested ? "#13a3dd" : "#d7e2ee"}`,
+              background: "#0f172a",
+              border: `1px solid ${attested ? "#38bdf8" : "#1e293b"}`,
               // Border turns blue when checked
               borderRadius: 12,
               padding: "16px 20px",
@@ -829,9 +878,9 @@ export default function CGPSDashboard() {
                 // Controlled input — its state is managed by the attested variable
                 onChange={e => setAttested(e.target.checked)}
                 // Update attested state to true or false when clicked
-                style={{ width: 17, height: 17, accentColor: "#13a3dd", cursor: "pointer", flexShrink: 0 }}
+                style={{ width: 17, height: 17, accentColor: "#38bdf8", cursor: "pointer", flexShrink: 0 }}
               />
-              <label htmlFor="attest" style={{ fontSize: 14, color: "#303642", cursor: "pointer", fontWeight: 500 }}>
+              <label htmlFor="attest" style={{ fontSize: 14, color: "#cbd5e1", cursor: "pointer", fontWeight: 500 }}>
                 I confirm I am not currently in class and I am free to use a quiet space
               </label>
             </div>
@@ -840,14 +889,14 @@ export default function CGPSDashboard() {
             {!attested ? (
               // If not attested, show a placeholder message instead of rooms
               <div style={{
-                background: "#ffffff",
-                border: "1px dashed #d7e2ee",
+                background: "#0f172a",
+                border: "1px dashed #1e293b",
                 borderRadius: 16,
                 padding: "56px 24px",
                 textAlign: "center",
               }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>☝️</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "#6a7a8a" }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#475569" }}>
                   Check the box above to view and book rooms
                 </div>
               </div>
@@ -894,7 +943,7 @@ export default function CGPSDashboard() {
                     let statusLabel = "Available";
                     let statusBg = "#052e16";
                     let statusColor = "#86efac";
-                    // Default status colors for rooms that are open to book
+                    // Default status: green "Available"
 
                     if (inSession) {
                       statusLabel = "Class in Session";
@@ -908,8 +957,8 @@ export default function CGPSDashboard() {
                       // Gray when at capacity
                     } else if (room.userBooked) {
                       statusLabel = "Your Booking";
-                      statusBg = "#d9f2fd";
-                      statusColor = "#0d77b0";
+                      statusBg = "#0c1a3b";
+                      statusColor = "#93c5fd";
                       // Blue when the current user has booked this room
                     }
 
@@ -920,10 +969,10 @@ export default function CGPSDashboard() {
                         className="card-hover"
                         style={{
                           background: room.userBooked
-                            ? "linear-gradient(135deg, #e3f4fe, #ffffff)"
-                            : "#ffffff",
+                            ? "linear-gradient(135deg, #0c1a3b, #0f172a)"
+                            : "#0f172a",
                           // User's booked room gets a blue-tinted background
-                          border: room.userBooked ? "1px solid #149fd8" : "1px solid #d7e2ee",
+                          border: room.userBooked ? "1px solid #1d4ed8" : "1px solid #1e293b",
                           // Booked room has a blue border
                           borderRadius: 16,
                           padding: 22,
@@ -939,13 +988,13 @@ export default function CGPSDashboard() {
                               fontFamily: "'IBM Plex Mono', monospace",
                               fontSize: 22,
                               fontWeight: 700,
-                              color: "#242228",
+                              color: "#f8fafc",
                               letterSpacing: "-0.02em",
                             }}>
                               {room.roomNumber}
                               {/* The room number like "302W" */}
                             </div>
-                            <div style={{ fontSize: 12, color: "#5a6675", marginTop: 2 }}>
+                            <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
                               {room.teacher}
                               {/* The teacher's name */}
                             </div>
@@ -969,19 +1018,19 @@ export default function CGPSDashboard() {
 
                         {/* Class name and time */}
                         <div style={{
-                          background: "#f2f6fb",
+                          background: "#0a0f1a",
                           borderRadius: 8,
                           padding: "10px 14px",
                           marginBottom: 12,
                         }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#303642" }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1" }}>
                             {room.className}
                             {/* Name of the scheduled class */}
                           </div>
                           <div style={{
                             fontFamily: "'IBM Plex Mono', monospace",
                             fontSize: 12,
-                            color: "#13a3dd",
+                            color: "#38bdf8",
                             marginTop: 3,
                           }}>
                             {formatTime(room.classStart)} – {formatTime(room.classEnd)}
@@ -1017,9 +1066,9 @@ export default function CGPSDashboard() {
                             <button disabled style={{
                               width: "100%",
                               padding: "10px",
-                              background: "#d7e2ee",
-                              border: "1px solid #9aacbf",
-                              color: "#6a7a8a",
+                              background: "#1e293b",
+                              border: "1px solid #334155",
+                              color: "#475569",
                               borderRadius: 8,
                               fontWeight: 600,
                               fontSize: 13,
@@ -1032,9 +1081,9 @@ export default function CGPSDashboard() {
                             <button disabled style={{
                               width: "100%",
                               padding: "10px",
-                              background: "#d7e2ee",
-                              border: "1px solid #9aacbf",
-                              color: "#6a7a8a",
+                              background: "#1e293b",
+                              border: "1px solid #334155",
+                              color: "#475569",
                               borderRadius: 8,
                               fontWeight: 600,
                               fontSize: 13,
@@ -1051,10 +1100,10 @@ export default function CGPSDashboard() {
                               style={{
                                 width: "100%",
                                 padding: "10px",
-                                background: isDisabled ? "transparent" : "linear-gradient(135deg, #149fd8, #0d77b0)",
+                                background: isDisabled ? "transparent" : "linear-gradient(135deg, #1d4ed8, #0284c7)",
                                 // Blue gradient when active, transparent when disabled
-                                border: isDisabled ? "1px solid #9aacbf" : "none",
-                                color: isDisabled ? "#6a7a8a" : "#fff",
+                                border: isDisabled ? "1px solid #334155" : "none",
+                                color: isDisabled ? "#475569" : "#fff",
                                 borderRadius: 8,
                                 fontWeight: 600,
                                 fontSize: 13,
@@ -1085,10 +1134,10 @@ export default function CGPSDashboard() {
             {/* Header row with title and Add Hours button */}
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#242228", margin: 0 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#f1f5f9", margin: 0 }}>
                   Teacher Office Hours
                 </h2>
-                <p style={{ fontSize: 13, color: "#5a6675", marginTop: 4 }}>
+                <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
                   {officeHours.length} session{officeHours.length !== 1 ? "s" : ""} available this week
                   {/* Shows count of total office hours sessions */}
                 </p>
@@ -1098,9 +1147,9 @@ export default function CGPSDashboard() {
                 onClick={() => setShowTeacherForm(f => !f)}
                 // Toggle the form open/closed on each click
                 style={{
-                  background: showTeacherForm ? "#d7e2ee" : "linear-gradient(135deg, #149fd8, #0d77b0)",
-                  color: showTeacherForm ? "#5a6675" : "#fff",
-                  border: showTeacherForm ? "1px solid #9aacbf" : "none",
+                  background: showTeacherForm ? "#1e293b" : "linear-gradient(135deg, #1d4ed8, #0284c7)",
+                  color: showTeacherForm ? "#94a3b8" : "#fff",
+                  border: showTeacherForm ? "1px solid #334155" : "none",
                   borderRadius: 10,
                   padding: "10px 18px",
                   fontWeight: 600,
@@ -1115,13 +1164,13 @@ export default function CGPSDashboard() {
             {/* Teacher form — only visible when showTeacherForm is true */}
             {showTeacherForm && (
               <div style={{
-                background: "#ffffff",
-                border: "1px solid #d7e2ee",
+                background: "#0f172a",
+                border: "1px solid #1e293b",
                 borderRadius: 16,
                 padding: 24,
                 marginBottom: 28,
               }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#5a6675", marginBottom: 18, textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#94a3b8", marginBottom: 18, textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
                   New Office Hours Entry
                 </div>
 
@@ -1134,7 +1183,7 @@ export default function CGPSDashboard() {
                     { label: "Room", key: "room", placeholder: "e.g. 204N" },
                   ].map(({ label, key, placeholder }) => (
                     <div key={key}>
-                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#5a6675", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
                         {label}
                       </label>
                       <input
@@ -1146,11 +1195,11 @@ export default function CGPSDashboard() {
                         placeholder={placeholder}
                         style={{
                           width: "100%",
-                          background: "#f2f6fb",
-                          border: "1px solid #d7e2ee",
+                          background: "#0a0f1a",
+                          border: "1px solid #1e293b",
                           borderRadius: 8,
                           padding: "10px 12px",
-                          color: "#242228",
+                          color: "#e2e8f0",
                           fontSize: 14,
                           fontFamily: "'IBM Plex Sans', sans-serif",
                         }}
@@ -1160,7 +1209,7 @@ export default function CGPSDashboard() {
 
                   {/* Day dropdown */}
                   <div>
-                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#5a6675", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
                       Day
                     </label>
                     <select
@@ -1169,11 +1218,11 @@ export default function CGPSDashboard() {
                       // Update the "day" field in the form state
                       style={{
                         width: "100%",
-                        background: "#f2f6fb",
-                        border: "1px solid #d7e2ee",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
                         borderRadius: 8,
                         padding: "10px 12px",
-                        color: "#242228",
+                        color: "#e2e8f0",
                         fontSize: 14,
                         fontFamily: "'IBM Plex Sans', sans-serif",
                         appearance: "none",
@@ -1187,7 +1236,7 @@ export default function CGPSDashboard() {
 
                   {/* Start time */}
                   <div>
-                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#5a6675", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
                       Start
                     </label>
                     <input
@@ -1196,11 +1245,11 @@ export default function CGPSDashboard() {
                       onChange={e => setTeacherForm(f => ({ ...f, start: e.target.value }))}
                       style={{
                         width: "100%",
-                        background: "#f2f6fb",
-                        border: "1px solid #d7e2ee",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
                         borderRadius: 8,
                         padding: "10px 12px",
-                        color: "#242228",
+                        color: "#e2e8f0",
                         fontSize: 14,
                         colorScheme: "dark",
                         // Tells the browser to use dark mode for the time picker UI
@@ -1210,7 +1259,7 @@ export default function CGPSDashboard() {
 
                   {/* End time */}
                   <div>
-                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#5a6675", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
                       End
                     </label>
                     <input
@@ -1219,11 +1268,11 @@ export default function CGPSDashboard() {
                       onChange={e => setTeacherForm(f => ({ ...f, end: e.target.value }))}
                       style={{
                         width: "100%",
-                        background: "#f2f6fb",
-                        border: "1px solid #d7e2ee",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
                         borderRadius: 8,
                         padding: "10px 12px",
-                        color: "#242228",
+                        color: "#e2e8f0",
                         fontSize: 14,
                         colorScheme: "dark",
                       }}
@@ -1237,7 +1286,7 @@ export default function CGPSDashboard() {
                     onClick={handleTeacherFormSubmit}
                     // Calls the submit function when clicked
                     style={{
-                      background: "linear-gradient(135deg, #149fd8, #0d77b0)",
+                      background: "linear-gradient(135deg, #1d4ed8, #0284c7)",
                       color: "#fff",
                       border: "none",
                       borderRadius: 10,
@@ -1285,11 +1334,11 @@ export default function CGPSDashboard() {
                 style={{
                   width: "100%",
                   maxWidth: 400,
-                  background: "#ffffff",
-                  border: "1px solid #d7e2ee",
+                  background: "#0f172a",
+                  border: "1px solid #1e293b",
                   borderRadius: 10,
                   padding: "11px 16px",
-                  color: "#242228",
+                  color: "#e2e8f0",
                   fontSize: 14,
                   fontFamily: "'IBM Plex Sans', sans-serif",
                 }}
@@ -1299,17 +1348,17 @@ export default function CGPSDashboard() {
             {/* Empty state — shown when no results match */}
             {Object.keys(groupedOH).length === 0 && (
               <div style={{
-                background: "#ffffff",
-                border: "1px dashed #d7e2ee",
+                background: "#0f172a",
+                border: "1px dashed #1e293b",
                 borderRadius: 16,
                 padding: "64px 24px",
                 textAlign: "center",
               }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "#6a7a8a" }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#475569" }}>
                   No office hours found
                 </div>
-                <div style={{ fontSize: 13, color: "#9aacbf", marginTop: 6 }}>
+                <div style={{ fontSize: 13, color: "#334155", marginTop: 6 }}>
                   Try a different search, or post new hours using the button above
                 </div>
               </div>
@@ -1324,12 +1373,12 @@ export default function CGPSDashboard() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                   <DayPill day={day} />
                   {/* Renders the colored day pill badge */}
-                  <div style={{ flex: 1, height: 1, background: "#d7e2ee" }} />
+                  <div style={{ flex: 1, height: 1, background: "#1e293b" }} />
                   {/* Horizontal divider line after the pill */}
                   <span style={{
                     fontFamily: "'IBM Plex Mono', monospace",
                     fontSize: 11,
-                    color: "#9aacbf",
+                    color: "#334155",
                   }}>
                     {groupedOH[day].length} session{groupedOH[day].length !== 1 ? "s" : ""}
                     {/* Shows count of sessions for this day */}
@@ -1344,10 +1393,10 @@ export default function CGPSDashboard() {
                       className="card-hover"
                       style={{
                         background: oh.userBooked
-                          ? "linear-gradient(135deg, #e3f4fe, #ffffff)"
-                          : "#ffffff",
+                          ? "linear-gradient(135deg, #0c1a3b, #0f172a)"
+                          : "#0f172a",
                         // Blue tint for user's own booked session
-                        border: oh.userBooked ? "1px solid #149fd8" : "1px solid #d7e2ee",
+                        border: oh.userBooked ? "1px solid #1d4ed8" : "1px solid #1e293b",
                         borderRadius: 14,
                         padding: "18px 20px",
                         display: "flex",
@@ -1358,11 +1407,11 @@ export default function CGPSDashboard() {
                       {/* Teacher name, subject, and RSVP badge */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: 15, color: "#242228" }}>
+                          <div style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
                             {oh.name}
                             {/* Teacher's name */}
                           </div>
-                          <div style={{ fontSize: 13, color: "#5a6675", marginTop: 2 }}>
+                          <div style={{ fontSize: 13, color: "#64748b", marginTop: 2 }}>
                             {oh.subject}
                             {/* Subject they teach */}
                           </div>
@@ -1370,9 +1419,9 @@ export default function CGPSDashboard() {
                         {oh.userBooked && (
                           // Only shows if the user has RSVP'd
                           <span style={{
-                            background: "#d9f2fd",
-                            color: "#0d77b0",
-                            border: "1px solid #149fd830",
+                            background: "#0c1a3b",
+                            color: "#93c5fd",
+                            border: "1px solid #1d4ed830",
                             padding: "3px 10px",
                             borderRadius: 999,
                             fontSize: 11,
@@ -1387,19 +1436,19 @@ export default function CGPSDashboard() {
                       {/* Time and room info row */}
                       <div style={{ display: "flex", gap: 16 }}>
                         <div>
-                          <div style={{ fontSize: 10, color: "#6a7a8a", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
+                          <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
                             Time
                           </div>
-                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#13a3dd" }}>
+                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#38bdf8" }}>
                             {formatTime(oh.start)} – {formatTime(oh.end)}
                             {/* Formatted start and end times */}
                           </div>
                         </div>
                         <div>
-                          <div style={{ fontSize: 10, color: "#6a7a8a", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
+                          <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
                             Room
                           </div>
-                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#0d77b0" }}>
+                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>
                             {oh.room}
                             {/* Room number */}
                           </div>
@@ -1431,7 +1480,7 @@ export default function CGPSDashboard() {
                           style={{
                             width: "100%",
                             padding: "9px",
-                            background: "linear-gradient(135deg, #149fd8, #0d77b0)",
+                            background: "linear-gradient(135deg, #1d4ed8, #0284c7)",
                             border: "none",
                             color: "#fff",
                             borderRadius: 8,
@@ -1453,12 +1502,12 @@ export default function CGPSDashboard() {
 
       {/* ── Footer ── */}
       <footer style={{
-        borderTop: "1px solid #d7e2ee",
+        borderTop: "1px solid #1e293b",
         padding: "20px 32px",
         textAlign: "center",
         fontFamily: "'IBM Plex Mono', monospace",
         fontSize: 11,
-        color: "#9aacbf",
+        color: "#334155",
         letterSpacing: "0.08em",
       }}>
         COLUMBIA GRAMMAR & PREPARATORY SCHOOL · STUDENT PORTAL · {new Date().getFullYear()}
