@@ -244,7 +244,7 @@ function findMatches(
   const matches: Match[] = []; // accumulator — candidates get pushed in below
 
   for (const candidate of allStudents) { // iterate every student in the school dataset
-    // if (candidate.id === currentStudent.id) continue; // skip self (disabled for testing)
+    // if (candidate.id === currentStudent.id) continue; // (Testing)
     if (!candidate.optedIn) continue;                 // respect privacy setting — hidden students are excluded
     const candidateClass = candidate.classes.find((c) => c.name === targetClassName); // check if this candidate also has the target class
     if (!candidateClass) continue; // if they don't share this class, skip them entirely
