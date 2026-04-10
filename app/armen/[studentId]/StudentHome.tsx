@@ -34,15 +34,16 @@
 //    PeriodBadge, FreePeriodChip          1031 – 1059
 //    CGPSMark logo                        1062 – 1094
 //    ChevronRight, ChevronLeft icons      1096 – 1133
+//mail gun 846, button 999
 // ═══════════════════════════════════════════════════════════════════════════════
 
-"use client";
+"use client"; // tells Next.js this file runs in the browser, not on the server — required for hooks like useState
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Student, ClassEntry } from "../data/parseSchedule";
-import { cycleDays } from "../data/cycleDays";
-import { getPeriodTime } from "../data/periodTimes";
+import { useMemo, useState } from "react"; // named imports: pull specific exports out of a module — like Python's `from react import useMemo, useState`
+import { useRouter } from "next/navigation"; // Next.js router hook for programmatic navigation
+import type { Student, ClassEntry } from "../data/parseSchedule"; // `import type` imports only the TypeScript type shape, not actual runtime code
+import { cycleDays } from "../data/cycleDays"; // object mapping "YYYY/MM/DD" → cycle day name (e.g. "Day 3")
+import { getPeriodTime } from "../data/periodTimes"; // function that returns the time string for a given period letter + day
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -109,40 +110,40 @@ const DAYS = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Da
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Returns today's date formatted as "YYYY/MM/DD" to look up the cycle day.
-function getTodayKey(): string {
+// FEATURE: Today's date key — converts current date to "YYYY/MM/DD" for cycle day lookup
+function getTodayKey(): string { // : string is the return type annotation — TypeScript equivalent of Python's -> str
   const now = new Date(); // built-in JS Date object — like Python's datetime.now()
-  const y = now.getFullYear();
+  const y = now.getFullYear(); // extracts the 4-digit year as a number, e.g. 2026
   const m = String(now.getMonth() + 1).padStart(2, "0"); // padStart pads with "0" so "3" → "03"; months are 0-indexed in JS, so +1
-  const d = String(now.getDate()).padStart(2, "0");       // same zero-padding for day
+  const d = String(now.getDate()).padStart(2, "0");       // same zero-padding for day — getDate() returns 1-31
   return `${y}/${m}/${d}`; // backtick template literal — like Python's f"{y}/{m}/{d}"
 }
 
-// Converts "YYYY/MM/DD" → "Wednesday, March 11" for the home screen header.
-function formatDisplayDate(key: string): string {
+// FEATURE: Home screen date display — formats "YYYY/MM/DD" → "Wednesday, March 11"
+function formatDisplayDate(key: string): string { // takes a "YYYY/MM/DD" string and returns a human-readable date
   const [y, m, d] = key.split("/").map(Number); // array destructuring — unpacks the 3 split pieces into named vars; .map(Number) converts each string to a number
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", { // m-1 because JS months are 0-indexed
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { // constructs a Date then formats it; m-1 because JS months are 0-indexed; "en-US" sets locale
+    weekday: "long",  // include full weekday name, e.g. "Wednesday"
+    month: "long",    // include full month name, e.g. "March"
+    day: "numeric",   // include day number, e.g. "11" — produces "Wednesday, March 11"
   });
 }
 
-// CSV names are stored "Last, First" — extract just the first name for greetings.
+// FEATURE: Name parsing — extracts first name for nav greeting ("Azadian, Armen" → "Armen")
 function getFirstName(name: string): string {
-  const parts = name.split(", ");
-  return parts.length > 1 ? parts[1] : name; // ternary: condition ? valueIfTrue : valueIfFalse — same idea as Python's (a if cond else b)
+  const parts = name.split(", "); // splits "Azadian, Armen" into ["Azadian", "Armen"]
+  return parts.length > 1 ? parts[1] : name; // ternary: condition ? valueIfTrue : valueIfFalse — same idea as Python's (a if cond else b); parts[1] is the first name
 }
 
-// Converts "Last, First" → "First Last" for display throughout the UI.
+// FEATURE: Name parsing — full display name ("Azadian, Armen" → "Armen Azadian")
 function getDisplayName(name: string): string {
-  const parts = name.split(", ");
-  return parts.length > 1 ? `${parts[1]} ${parts[0]}` : name; // template literal builds "First Last" from the split array
+  const parts = name.split(", "); // splits "Azadian, Armen" into ["Azadian", "Armen"]
+  return parts.length > 1 ? `${parts[1]} ${parts[0]}` : name; // template literal builds "Armen Azadian" — parts[1] = first, parts[0] = last
 }
 
-// Returns up to 2 uppercase initials from a display name (e.g. "Armen Azadian" → "AA").
-function initials(name: string): string {
-  return getDisplayName(name)
+// FEATURE: Avatar initials — "Armen Azadian" → "AA" for the opt-in welcome circle
+function initials(name: string): string { // takes a raw "Last, First" name and returns uppercase initials like "AA"
+  return getDisplayName(name)   // first converts to "First Last" form so initials are in the right order
     .split(" ")           // split on spaces → ["Armen", "Azadian"]
     .map((n) => n[0])     // arrow function: (n) => n[0] is like Python's lambda n: n[0]; grabs first char of each word
     .join("")             // joins array back into a string — like Python's "".join(...)
@@ -150,26 +151,25 @@ function initials(name: string): string {
     .toUpperCase();       // uppercase — like Python's .upper()
 }
 
-// Returns every unscheduled period for each of the 8 cycle days.
-// Result is keyed "Day 1" … "Day 8", value is an array of free period letters.
+// FEATURE: Free period calculation (all 8 days) — used by study buddy matching algorithm
 function getAllFreePeriods(student: Student): Record<string, string[]> { // Record<string, string[]> is a TypeScript type meaning "object whose keys are strings and values are string arrays" — like Dict[str, list[str]] in Python
-  const result: Record<string, string[]> = {};
-  for (const day of DAYS) {
+  const result: Record<string, string[]> = {}; // empty object that will be filled in — like starting with an empty dict in Python
+  for (const day of DAYS) { // loops over all 8 cycle days in order
     const scheduled = new Set<string>(); // Set<string> is a TypeScript generic — Set is the same concept as Python's set(); <string> just tells TS what type it holds
-    for (const cls of student.classes) {
-      const val = cls.schedule[day];
+    for (const cls of student.classes) { // loop over every class the student is enrolled in
+      const val = cls.schedule[day]; // look up what period(s) this class meets on this day — could be "B" or "C,D" or undefined
       if (val) val.split(",").map((p) => p.trim()).forEach((p) => scheduled.add(p)); // chained methods: split into array → trim each item (arrow fn) → add each to the Set
     }
     result[day] = ALL_PERIODS.filter((p) => !scheduled.has(p)); // .filter keeps only items where the arrow function returns true; .has() checks Set membership — like Python's `not in`
   }
-  return result;
+  return result; // returns the full map, e.g. { "Day 1": ["A","C"], "Day 2": ["B","F"], ... }
 }
 
-// Returns free period letters for a single cycle day — used on the home screen.
-function getFreePeriodsByDay(student: Student, dayKey: string): string[] {
+// FEATURE: Free periods today — single-day version used on the home screen chips
+function getFreePeriodsByDay(student: Student, dayKey: string): string[] { // returns a plain array of free period letters for just one day
   const scheduled = new Set<string>(); // Set for O(1) membership checks — faster than scanning an array
-  for (const cls of student.classes) {
-    const val = cls.schedule[dayKey];
+  for (const cls of student.classes) { // iterate over all of the student's classes
+    const val = cls.schedule[dayKey]; // get the period string for this specific day, e.g. "B" or "C,D" or undefined
     if (val) val.split(",").map((p) => p.trim()).forEach((p) => scheduled.add(p)); // same chain as above: split → trim each → add each to Set
   }
   return ALL_PERIODS.filter((p) => !scheduled.has(p)); // keep only periods NOT in the scheduled Set
@@ -182,92 +182,89 @@ interface ScheduleItem {
   room: string;
 }
 
-// Builds the ordered list of classes for a given cycle day, sorted by first period letter.
-function getScheduleForDay(student: Student, dayKey: string): ScheduleItem[] {
-  const items: ScheduleItem[] = [];
-  for (const cls of student.classes) {
-    const val = cls.schedule[dayKey];
-    if (!val) continue;
+// FEATURE: Today's schedule builder — ordered class list for a given cycle day
+function getScheduleForDay(student: Student, dayKey: string): ScheduleItem[] { // returns an ordered list of ScheduleItem objects for the given cycle day
+  const items: ScheduleItem[] = []; // start with an empty array typed as ScheduleItem[] — like an empty list in Python
+  for (const cls of student.classes) { // iterate over each of the student's enrolled classes
+    const val = cls.schedule[dayKey]; // look up whether this class meets on this day; undefined means it doesn't
+    if (!val) continue; // skip this class if it doesn't meet today — `continue` jumps to the next loop iteration, same as Python
     const periods = val.split(",").map((p) => p.trim()).filter(Boolean); // .filter(Boolean) removes any empty strings after trimming — truthy check
-    items.push({ name: cls.name, teacher: cls.teacher, periods, room: cls.room });
+    items.push({ name: cls.name, teacher: cls.teacher, periods, room: cls.room }); // push appends to the array — like Python's list.append(); object uses shorthand keys
   }
   return items.sort((a, b) => a.periods[0].localeCompare(b.periods[0])); // .sort takes a comparator fn; .localeCompare returns negative/0/positive — JS equivalent of Python's key= but manual
 }
 
-// Filters out administrative entries (homeroom, house) that students can't
-// meaningfully search for study buddies in.
-function getSearchableClasses(student: Student): ClassEntry[] {
-  return student.classes.filter((cls) => {
-    const hasSchedule = Object.keys(cls.schedule).length > 0; // Object.keys() returns an array of keys — like Python's dict.keys()
+// FEATURE: Study buddy class filter — removes homeroom and house classes from the picker
+function getSearchableClasses(student: Student): ClassEntry[] { // returns only classes a student can realistically search study buddies for
+  return student.classes.filter((cls) => { // .filter iterates every class; the arrow function inside returns true to keep or false to drop
+    const hasSchedule = Object.keys(cls.schedule).length > 0; // Object.keys() returns an array of keys — like Python's dict.keys(); length > 0 means at least one day is scheduled
     const isHomeroom = /homeroom/i.test(cls.name); // /homeroom/i is a regex literal; the i flag = case-insensitive; .test() returns true/false — like Python's re.search()
     const isHouse = /\b(red|green|silver|gold|blue)\s+house\b/i.test(cls.name); // \b = word boundary, \s+ = one or more spaces, | = OR inside the group
-    return hasSchedule && !isHomeroom && !isHouse;
+    return hasSchedule && !isHomeroom && !isHouse; // keep the class only if it has a real schedule AND is not homeroom AND is not a house
   });
 }
 
-// Finds periods that are free for both students on each cycle day.
+// FEATURE: Study buddy matching — shared free period overlap across all 8 days
 function computeSharedFrees(
-  a: Record<string, string[]>,
-  b: Record<string, string[]>
-): SharedFree[] {
-  const result: SharedFree[] = [];
-  for (const day of DAYS) {
+  a: Record<string, string[]>, // free periods for student A, keyed by day
+  b: Record<string, string[]>  // free periods for student B, keyed by day
+): SharedFree[] { // returns only the days where both students have at least one overlapping free period
+  const result: SharedFree[] = []; // accumulator array — starts empty, days with overlap get pushed in
+  for (const day of DAYS) { // check all 8 cycle days
     const aSet = new Set(a[day] ?? []); // ?? is the "nullish coalescing" operator — returns right side if left side is null or undefined; like Python's `a[day] or []` but only for null/undefined
     const shared = (b[day] ?? []).filter((p) => aSet.has(p)); // keep only periods that also appear in student A's free Set
-    if (shared.length > 0) result.push({ day, periods: shared });
+    if (shared.length > 0) result.push({ day, periods: shared }); // only include this day if there is at least one overlapping period
   }
-  return result;
+  return result; // e.g. [{ day: "Day 3", periods: ["B", "D"] }, ...]
 }
 
-// Scoring: same teacher = 100pts, each shared free period = 10pts.
-// Tiers: best (teacher + frees) > good (teacher only) > possible (frees only) > fallback.
+// FEATURE: Study buddy matching — scoring formula (same teacher = 100pts, each shared free = 10pts) and tier assignment
 function scoreAndTier(
   sameTeacher: boolean,
   totalSharedFrees: number
 ): { score: number; tier: Match["tier"] } { // return type is an inline object type — { score: number; tier: ... }
-  const score = (sameTeacher ? 100 : 0) + totalSharedFrees * 10; // ternary inside arithmetic: if sameTeacher, contribute 100 pts, else 0
-  let tier: Match["tier"]; // Match["tier"] reads the "tier" field type from the Match interface — TypeScript index access
-  if (sameTeacher && totalSharedFrees > 0) tier = "best";
-  else if (sameTeacher) tier = "good";
-  else if (totalSharedFrees > 0) tier = "possible";
-  else tier = "fallback";
+  const score = (sameTeacher ? 100 : 0) + totalSharedFrees * 10; // ternary inside arithmetic: if sameTeacher, contribute 100 pts, else 0; each shared free adds 10 pts
+  let tier: Match["tier"]; // Match["tier"] reads the "tier" field type from the Match interface — TypeScript index access; using let so it can be reassigned below
+  if (sameTeacher && totalSharedFrees > 0) tier = "best";     // both conditions met → strongest match
+  else if (sameTeacher) tier = "good";                        // same teacher but no overlapping frees
+  else if (totalSharedFrees > 0) tier = "possible";           // different teacher but some free overlap
+  else tier = "fallback";                                      // only shares the class name — weakest match
   return { score, tier }; // shorthand object literal: { score: score, tier: tier } — keys match variable names
 }
 
-// Searches all opted-in students who share the target class with the current
-// student, scores each one, and returns them sorted highest-score first.
+// FEATURE: Study buddy matching — main algorithm (loops all students, skips opted-out, scores + sorts results)
 function findMatches(
   currentStudent: Student,
   allStudents: Student[],
   targetClassName: string
 ): Match[] {
   const currentClass = currentStudent.classes.find((c) => c.name === targetClassName); // .find() returns the first element where the arrow fn is true, or undefined
-  if (!currentClass) return [];
-  const currentFrees = getAllFreePeriods(currentStudent);
-  const matches: Match[] = [];
+  if (!currentClass) return []; // early return if this student doesn't actually have that class — guard clause
+  const currentFrees = getAllFreePeriods(currentStudent); // pre-compute current student's free periods once, reused in every loop iteration
+  const matches: Match[] = []; // accumulator — candidates get pushed in below
 
-  for (const candidate of allStudents) {
-    if (candidate.id === currentStudent.id) continue; // skip self
-    if (!candidate.optedIn) continue;                 // respect privacy setting
-    const candidateClass = candidate.classes.find((c) => c.name === targetClassName);
-    if (!candidateClass) continue;
+  for (const candidate of allStudents) { // iterate every student in the school dataset
+    // if (candidate.id === currentStudent.id) continue; // skip self (disabled for testing)
+    if (!candidate.optedIn) continue;                 // respect privacy setting — hidden students are excluded
+    const candidateClass = candidate.classes.find((c) => c.name === targetClassName); // check if this candidate also has the target class
+    if (!candidateClass) continue; // if they don't share this class, skip them entirely
 
-    const sameTeacher = currentClass.teacher === candidateClass.teacher;
-    const candidateFrees = getAllFreePeriods(candidate);
-    const sharedFrees = computeSharedFrees(currentFrees, candidateFrees);
+    const sameTeacher = currentClass.teacher === candidateClass.teacher; // true if both students have the same section/teacher
+    const candidateFrees = getAllFreePeriods(candidate); // compute the candidate's free periods for all 8 days
+    const sharedFrees = computeSharedFrees(currentFrees, candidateFrees); // find days/periods both students are free at the same time
     const totalSharedFrees = sharedFrees.reduce((s, sf) => s + sf.periods.length, 0); // .reduce() accumulates a value across an array; (s, sf) => s + sf.periods.length adds up all period counts; 0 is the starting value — like Python's functools.reduce or sum()
     const { score, tier } = scoreAndTier(sameTeacher, totalSharedFrees); // object destructuring — unpacks the returned object's fields into local variables
 
-    matches.push({
-      student: candidate,
-      matchedClassName: targetClassName,
-      currentTeacher: currentClass.teacher,
-      candidateTeacher: candidateClass.teacher,
+    matches.push({ // build a Match object and append it to the results array
+      student: candidate,           // the candidate student object
+      matchedClassName: targetClassName, // which class triggered this match
+      currentTeacher: currentClass.teacher,       // current student's section teacher
+      candidateTeacher: candidateClass.teacher,   // candidate's section teacher
       sameTeacher,      // shorthand: sameTeacher: sameTeacher
       sharedFrees,      // shorthand: sharedFrees: sharedFrees
       totalSharedFrees, // shorthand: totalSharedFrees: totalSharedFrees
-      score,
-      tier,
+      score,            // numeric score used for ranking
+      tier,             // "best" | "good" | "possible" | "fallback" label
     });
   }
 
@@ -283,15 +280,14 @@ interface Props {
   allStudents: Student[];
 }
 
-// Orchestrates navigation between the four screens (optin → home → results → detail).
-// todayKey and cycleDay are derived once here and passed down to avoid redundant calls.
+// FEATURE: Root component — screen navigation controller (optin → home → results → detail)
 export default function StudentHome({ currentStudent, allStudents }: Props) {
   const router = useRouter(); // Next.js hook that lets you navigate programmatically (like a redirect)
   const [view, setView] = useState<View>({ type: "optin" }); // useState is a React hook — returns [currentValue, setterFn]; <View> is a TypeScript generic saying "this state holds a View type"
   const [optedIn, setOptedIn] = useState<boolean | null>(null); // boolean | null is a union type — the value can be true, false, or null
 
   // Compute once per render — shared with child screens so they don't recalculate.
-  const todayKey = getTodayKey();
+  const todayKey = getTodayKey(); // calls our helper above to get "YYYY/MM/DD" string for today
   const cycleDay = cycleDays[todayKey] ?? null; // ?? null: if cycleDays lookup returns undefined (date not in calendar), use null instead
 
   // Memoize match results so findMatches (which iterates all students) only reruns
@@ -305,12 +301,13 @@ export default function StudentHome({ currentStudent, allStudents }: Props) {
     [view.type === "results" ? view.className : null, optedIn] // dependency array — useMemo re-runs when any of these values change
   );
 
+  // FEATURE: Opt-in choice handler — saves choice, updates student visibility, navigates to home
   const handleOptIn = (choice: boolean) => {  // arrow function assigned to a variable — same as writing function handleOptIn(choice) {}
-    setOptedIn(choice);
+    setOptedIn(choice); // update React state so the UI re-renders with the new opt-in value
     // Also update the student object so findMatches reflects the opt-in choice
     // when this student appears as a candidate in another student's session.
-    currentStudent.optedIn = choice;
-    setView({ type: "home" });
+    currentStudent.optedIn = choice; // mutate the object directly so other students searching don't see this student if they opted out
+    setView({ type: "home" }); // navigate to the home screen — changes the `view` state which triggers a re-render
   };
 
   const signOut = () => router.push("/armen"); // concise arrow function with no curly braces — the expression after => is the return value
@@ -361,6 +358,7 @@ export default function StudentHome({ currentStudent, allStudents }: Props) {
       <DetailScreen
         match={view.match}
         todayKey={todayKey}
+        currentStudent={currentStudent}
         onBack={() => setView({ type: "results", className: view.className })}
       />
     );
@@ -370,7 +368,7 @@ export default function StudentHome({ currentStudent, allStudents }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Opt-in Screen
+// FEATURE: Opt-In Screen — first screen after ID scan; student chooses visibility
 // ─────────────────────────────────────────────────────────────────────────────
 
 function OptInScreen({
@@ -459,7 +457,7 @@ function OptInScreen({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Home Screen
+// FEATURE: Home Screen — main dashboard with schedule, free periods, class picker, opt-in toggle
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface HomeScreenProps {
@@ -490,6 +488,7 @@ function HomeScreen({
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: C.pageBg }}>
 
+      {/* FEATURE: Home screen nav header — student name, opt-in status indicator, sign out button */}
       {/* Nav header */}
       {/* borderBottom uses a template literal (`1px solid ${C.navyBorder}`) to insert the color variable into the CSS string — like Python's f-strings */}
       <div
@@ -530,6 +529,7 @@ function HomeScreen({
       {/* Body */}
       <div className="flex-1 px-5 py-6 flex flex-col gap-6 max-w-lg mx-auto w-full pb-16">
 
+        {/* FEATURE: Home screen date + cycle day — shows today's date and current day in the 8-day cycle */}
         {/* Date + cycle day */}
         <div className="flex items-center justify-between">
           <div>
@@ -560,6 +560,7 @@ function HomeScreen({
           )}
         </div>
 
+        {/* FEATURE: Home screen today's schedule — class name, teacher, room, period badges sorted by period */}
         {/* Schedule */}
         <section>
           {/* ternary with template literal: if cycleDay exists, show "Schedule · Day 3"; otherwise just "Schedule" */}
@@ -605,6 +606,7 @@ function HomeScreen({
           )}
         </section>
 
+        {/* FEATURE: Home screen free periods today — gold chips showing each free period letter + time */}
         {/* Free periods */}
         {cycleDay && (
           <section>
@@ -623,6 +625,7 @@ function HomeScreen({
           </section>
         )}
 
+        {/* FEATURE: Home screen study buddy class picker — one button per searchable class, triggers findMatches */}
         {/* Find a Study Buddy */}
         <section>
           <SectionLabel>Find a Study Buddy</SectionLabel>
@@ -662,6 +665,7 @@ function HomeScreen({
           </div>
         </section>
 
+        {/* FEATURE: Home screen opt-in toggle — gold/gray pill switch to show/hide yourself from other students */}
         {/* Opt-in toggle */}
         <section>
           <div
@@ -697,9 +701,10 @@ function HomeScreen({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Results Screen
+// FEATURE: Results Screen — ranked list of study buddy candidates for a selected class
 // ─────────────────────────────────────────────────────────────────────────────
 
+// FEATURE: Study buddy matching — tier badge labels and colors (best/good/possible/fallback)
 const TIER_CONFIG: Record<
   Match["tier"],
   { label: string; bg: string; text: string }
@@ -825,18 +830,52 @@ function ResultsScreen({ className, matches, onBack, onSelectMatch }: ResultsScr
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Detail Screen
+// FEATURE: Detail Screen — full match info: matched class, teachers, and shared free period schedule
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface DetailScreenProps {
   match: Match;
   todayKey: string;
+  currentStudent: Student;
   onBack: () => void;
 }
 
-function DetailScreen({ match, todayKey, onBack }: DetailScreenProps) {
+function DetailScreen({ match, todayKey, currentStudent, onBack }: DetailScreenProps) {
   const candidateName = getDisplayName(match.student.name);
   const todayCycleDay = cycleDays[todayKey] ?? null;
+
+  // FEATURE: Connect button state — tracks whether the email request is in-flight, sent, or errored
+  const [connectState, setConnectState] = useState<"idle" | "sending" | "sent" | "ratelimit" | "error">("idle");
+  const [invitesRemaining, setInvitesRemaining] = useState<number | null>(null);
+
+  async function handleConnect() {
+    setConnectState("sending");
+    try {
+      const res = await fetch("/api/send-connect-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderName:    currentStudent.name,
+          senderId:      currentStudent.id,
+          recipientName: match.student.name,
+          recipientId:   match.student.id,
+          className:     match.matchedClassName,
+          sharedFrees:   match.sharedFrees,
+        }),
+      });
+      if (res.status === 429) {
+        setConnectState("ratelimit");
+      } else if (res.ok) {
+        const data = await res.json();
+        setInvitesRemaining(data.invitesRemaining ?? null);
+        setConnectState("sent");
+      } else {
+        setConnectState("error");
+      }
+    } catch {
+      setConnectState("error");
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: C.pageBg }}>
@@ -844,6 +883,7 @@ function DetailScreen({ match, todayKey, onBack }: DetailScreenProps) {
 
       <div className="flex-1 px-5 py-6 max-w-lg mx-auto w-full flex flex-col gap-5 pb-16">
 
+        {/* FEATURE: Detail screen matched class — class name, your teacher vs their teacher, same-teacher badge */}
         {/* Matched class */}
         <section>
           <SectionLabel>Matched Class</SectionLabel>
@@ -889,6 +929,7 @@ function DetailScreen({ match, todayKey, onBack }: DetailScreenProps) {
           </div>
         </section>
 
+        {/* FEATURE: Detail screen study schedule — shared free periods per day; today's day is highlighted gold */}
         {/* When you can study together */}
         <section>
           <SectionLabel>When you can study together</SectionLabel>
@@ -955,13 +996,50 @@ function DetailScreen({ match, todayKey, onBack }: DetailScreenProps) {
           )}
         </section>
 
-        {/* Discovery note */}
-        <div
-          className="rounded-xl px-4 py-3 text-xs text-center"
-          style={{ backgroundColor: C.pageBg, border: `1px solid ${C.cardBorder}`, color: C.mutedText }} // template literal builds the border CSS string with the color token
-        >
-          Study Buddies is discovery only — reach out to{" "}
-          {getFirstName(match.student.name)} directly to plan a study session.
+        {/* FEATURE: Connect button — sends a Mailgun email to the match on behalf of the current student */}
+        <div className="flex flex-col items-center gap-3">
+          {connectState === "ratelimit" ? (
+            <div
+              className="w-full rounded-2xl px-5 py-3 text-sm font-bold text-center"
+              style={{ backgroundColor: "#FDE8E8", border: `1px solid ${C.errorRed}`, color: C.errorRed }}
+            >
+              3 invite limit reached — try again tomorrow.
+            </div>
+          ) : connectState !== "sent" ? (
+            <button
+              onClick={handleConnect}
+              disabled={connectState === "sending"}
+              className="w-full rounded-2xl px-5 py-3 text-sm font-bold transition-all"
+              style={{
+                backgroundColor: connectState === "sending" ? C.cgpsBlue + "99" : C.cgpsBlue,
+                color: "#FFFFFF",
+                cursor: connectState === "sending" ? "not-allowed" : "pointer",
+              }}
+            >
+              {connectState === "sending"
+                ? "Sending…"
+                : `Connect with ${getFirstName(match.student.name)}`}
+            </button>
+          ) : (
+            <div
+              className="w-full rounded-2xl px-5 py-3 text-sm font-bold text-center"
+              style={{ backgroundColor: C.goldLight, border: `1px solid ${C.goldBorder}`, color: "#7A6010" }}
+            >
+              Email sent to {getFirstName(match.student.name)}!
+            </div>
+          )}
+
+          {connectState === "error" && (
+            <p className="text-xs text-center" style={{ color: C.errorRed }}>
+              Something went wrong — check your Mailgun setup.
+            </p>
+          )}
+
+          <p className="text-xs text-center" style={{ color: C.mutedText }}>
+            {connectState === "sent" && invitesRemaining !== null
+              ? `${invitesRemaining} invite${invitesRemaining !== 1 ? "s" : ""} remaining today.`
+              : `Sends ${getFirstName(match.student.name)} your email so they can reach out.`}
+          </p>
         </div>
       </div>
     </div>
@@ -972,6 +1050,7 @@ function DetailScreen({ match, todayKey, onBack }: DetailScreenProps) {
 // Shared layout components
 // ─────────────────────────────────────────────────────────────────────────────
 
+// FEATURE: Shared nav header — sticky top bar with back button, screen label, and title
 function NavHeader({
   onBack,
   label,
@@ -1012,6 +1091,7 @@ function NavHeader({
   );
 }
 
+// FEATURE: Shared section label — small uppercase gray heading used between content blocks
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <h2
@@ -1023,6 +1103,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// FEATURE: Shared info card — centered empty-state card (e.g. "No school today", "No matches found")
 function InfoCard({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -1038,6 +1119,7 @@ function InfoCard({ children }: { children: React.ReactNode }) {
   );
 }
 
+// FEATURE: Shared period badge — small navy square showing a period letter (e.g. "B")
 function PeriodBadge({ period }: { period: string }) {
   return (
     <span
@@ -1049,6 +1131,7 @@ function PeriodBadge({ period }: { period: string }) {
   );
 }
 
+// FEATURE: Shared free period chip — gold pill showing period letter + time (used on home screen)
 function FreePeriodChip({ period, cycleDay }: { period: string; cycleDay: string }) {
   return (
     <div
@@ -1072,6 +1155,7 @@ function FreePeriodChip({ period, cycleDay }: { period: string; cycleDay: string
 // CGPS Logo Mark
 // ─────────────────────────────────────────────────────────────────────────────
 
+// FEATURE: Shared CGPS logo mark — serif "C" + bold "GPS" with blue underline; small prop scales it for nav bar
 function CGPSMark({ small = false }: { small?: boolean }) { // destructuring with default: small defaults to false if not passed; small?: boolean means the prop is optional (the ? marks it optional in TypeScript)
   return (
     <div className="flex flex-col items-start">
@@ -1106,6 +1190,7 @@ function CGPSMark({ small = false }: { small?: boolean }) { // destructuring wit
 // Icons
 // ─────────────────────────────────────────────────────────────────────────────
 
+// FEATURE: Shared icon — right-pointing chevron arrow used on class buttons and match cards
 function ChevronRight({ color = "#6B7280" }: { color?: string }) {
   return (
     <svg
@@ -1124,6 +1209,7 @@ function ChevronRight({ color = "#6B7280" }: { color?: string }) {
   );
 }
 
+// FEATURE: Shared icon — left-pointing chevron arrow used as the back button in nav headers
 function ChevronLeft() {
   return (
     <svg

@@ -33,3 +33,12 @@ export function getPeriodTime(letter: string, cycleDay: string): string {
   const [start, end] = SLOT_TIMES[slot - 1];
   return `${start} – ${end}`;
 }
+
+// Returns just the start time with am/pm, e.g. "10:55 am" or "1:25 pm"
+export function getPeriodStartTime(letter: string, cycleDay: string): string {
+  const slot = getPeriodSlot(letter, cycleDay);
+  if (slot === -1) return "";
+  const [start] = SLOT_TIMES[slot - 1];
+  const hour = parseInt(start.split(":")[0], 10);
+  return `${start} ${hour >= 12 ? "pm" : "am"}`;
+}
