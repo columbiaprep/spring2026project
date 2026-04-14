@@ -33,114 +33,16 @@ export function Model110N(props) {
         geometry={nodes.chair_dining_four_back_no1.geometry}
         material={nodes.chair_dining_four_back_no1.material}
       />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_0.geometry}
-        material={nodes.wall_0.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_6.geometry}
-        material={nodes.wall_6.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_7.geometry}
-        material={nodes.wall_7.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_1.geometry}
-        material={nodes.wall_1.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_8.geometry}
-        material={nodes.wall_8.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_9.geometry}
-        material={nodes.wall_9.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_2.geometry}
-        material={nodes.wall_2.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_10.geometry}
-        material={nodes.wall_10.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_11.geometry}
-        material={nodes.wall_11.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_3.geometry}
-        material={nodes.wall_3.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_12.geometry}
-        material={nodes.wall_12.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_13.geometry}
-        material={nodes.wall_13.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_4.geometry}
-        material={nodes.wall_4.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_14.geometry}
-        material={nodes.wall_14.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_15.geometry}
-        material={nodes.wall_15.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_5.geometry}
-        material={nodes.wall_5.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_16.geometry}
-        material={nodes.wall_16.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_17.geometry}
-        material={nodes.wall_17.material}
-      />
+      {Array.from({ length: 17 }, (_, i) => i + 1).map((i) => (
+        <mesh
+          key={`wall_${i}`}
+          castShadow
+          receiveShadow
+          geometry={nodes[`wall_${i}`].geometry}
+          material={nodes[`wall_${i}`].material}
+          material-color={props.color}
+        />
+      ))}
       <mesh
         castShadow
         receiveShadow
@@ -206,12 +108,14 @@ export function Model110N(props) {
         receiveShadow
         geometry={nodes.floor_Other.geometry}
         material={nodes.floor_Other.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.floor_Other_2.geometry}
         material={nodes.floor_Other_2.material}
+        material-color={props.color}
       />
     </group>
   )

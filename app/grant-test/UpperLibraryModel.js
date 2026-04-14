@@ -170,12 +170,14 @@ export function UpperLibraryModel(props) {
         receiveShadow
         geometry={nodes.floor_Other.geometry}
         material={nodes.floor_Other.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.floor_Other_2.geometry}
         material={nodes.floor_Other_2.material}
+        material-color={props.color}
       />
     </group>
   )

@@ -62,6 +62,7 @@ export function TechHubModel(props) {
         receiveShadow
         geometry={nodes.stairs30.geometry}
         material={nodes.stairs30.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
@@ -110,474 +111,553 @@ export function TechHubModel(props) {
         receiveShadow
         geometry={nodes.wall_0.geometry}
         material={nodes.wall_0.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_26.geometry}
         material={nodes.wall_26.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_27.geometry}
         material={nodes.wall_27.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_1.geometry}
         material={nodes.wall_1.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_28.geometry}
         material={nodes.wall_28.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_29.geometry}
         material={nodes.wall_29.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_2.geometry}
         material={nodes.wall_2.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_30.geometry}
         material={nodes.wall_30.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_31.geometry}
         material={nodes.wall_31.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_3.geometry}
         material={nodes.wall_3.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_32.geometry}
         material={nodes.wall_32.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_33.geometry}
         material={nodes.wall_33.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_4.geometry}
         material={nodes.wall_4.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_34.geometry}
         material={nodes.wall_34.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_35.geometry}
         material={nodes.wall_35.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_5.geometry}
         material={nodes.wall_5.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_36.geometry}
         material={nodes.wall_36.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_37.geometry}
         material={nodes.wall_37.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_6.geometry}
         material={nodes.wall_6.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_38.geometry}
         material={nodes.wall_38.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_39.geometry}
         material={nodes.wall_39.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_7.geometry}
         material={nodes.wall_7.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_40.geometry}
         material={nodes.wall_40.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_41.geometry}
         material={nodes.wall_41.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_8.geometry}
         material={nodes.wall_8.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_42.geometry}
         material={nodes.wall_42.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_43.geometry}
         material={nodes.wall_43.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_9.geometry}
         material={nodes.wall_9.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_44.geometry}
         material={nodes.wall_44.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_45.geometry}
         material={nodes.wall_45.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_10.geometry}
         material={nodes.wall_10.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_46.geometry}
         material={nodes.wall_46.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_47.geometry}
         material={nodes.wall_47.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_11.geometry}
         material={nodes.wall_11.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_48.geometry}
         material={nodes.wall_48.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_49.geometry}
         material={nodes.wall_49.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_12.geometry}
         material={nodes.wall_12.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_50.geometry}
         material={nodes.wall_50.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_51.geometry}
         material={nodes.wall_51.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_13.geometry}
         material={nodes.wall_13.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_52.geometry}
         material={nodes.wall_52.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_53.geometry}
         material={nodes.wall_53.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_14.geometry}
         material={nodes.wall_14.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_54.geometry}
         material={nodes.wall_54.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_55.geometry}
         material={nodes.wall_55.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_15.geometry}
         material={nodes.wall_15.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_56.geometry}
         material={nodes.wall_56.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_57.geometry}
         material={nodes.wall_57.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_16.geometry}
         material={nodes.wall_16.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_58.geometry}
         material={nodes.wall_58.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_59.geometry}
         material={nodes.wall_59.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_17.geometry}
         material={nodes.wall_17.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_60.geometry}
         material={nodes.wall_60.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_61.geometry}
         material={nodes.wall_61.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_18.geometry}
         material={nodes.wall_18.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_62.geometry}
         material={nodes.wall_62.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_63.geometry}
         material={nodes.wall_63.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_19.geometry}
         material={nodes.wall_19.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_64.geometry}
         material={nodes.wall_64.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_65.geometry}
         material={nodes.wall_65.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_20.geometry}
         material={nodes.wall_20.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_66.geometry}
         material={nodes.wall_66.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_67.geometry}
         material={nodes.wall_67.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_21.geometry}
         material={nodes.wall_21.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_68.geometry}
         material={nodes.wall_68.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_69.geometry}
         material={nodes.wall_69.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_22.geometry}
         material={nodes.wall_22.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_70.geometry}
         material={nodes.wall_70.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_71.geometry}
         material={nodes.wall_71.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_23.geometry}
         material={nodes.wall_23.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_72.geometry}
         material={nodes.wall_72.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_73.geometry}
         material={nodes.wall_73.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_24.geometry}
         material={nodes.wall_24.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_74.geometry}
         material={nodes.wall_74.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_75.geometry}
         material={nodes.wall_75.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_25.geometry}
         material={nodes.wall_25.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_76.geometry}
         material={nodes.wall_76.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.wall_77.geometry}
         material={nodes.wall_77.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.joint_0.geometry}
         material={nodes.joint_0.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
@@ -740,12 +820,14 @@ export function TechHubModel(props) {
         receiveShadow
         geometry={nodes.door_0.geometry}
         material={nodes.door_0.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.door_2.geometry}
         material={nodes.door_2.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
@@ -788,12 +870,14 @@ export function TechHubModel(props) {
         receiveShadow
         geometry={nodes.door_1.geometry}
         material={nodes.door_1.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.door_3.geometry}
         material={nodes.door_3.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
@@ -812,12 +896,14 @@ export function TechHubModel(props) {
         receiveShadow
         geometry={nodes.floor_Dining_Room.geometry}
         material={nodes.floor_Dining_Room.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.floor_Dining_Room_2.geometry}
         material={nodes.floor_Dining_Room_2.material}
+        material-color={props.color}
       />
     </group>
   )

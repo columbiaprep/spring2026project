@@ -7,6 +7,13 @@ import { useGLTF } from '@react-three/drei'
 
 export function LoungeModel(props) {
   const { nodes, materials } = useGLTF('/LoungeModel.glb')
+
+  for (const key in materials) {
+    const material = materials[key]
+    material.transparent = true
+    material.opacity = 0.4
+  }
+  
   return (
     <group {...props} dispose={null}>
       <mesh

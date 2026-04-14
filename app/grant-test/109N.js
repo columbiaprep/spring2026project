@@ -6,7 +6,15 @@ import React, { useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 
 export function Model109N(props) {
+  
   const { nodes, materials } = useGLTF('/109N.glb')
+
+  for (const key in materials) {
+    const material = materials[key]
+    material.transparent = true
+    material.opacity = 0.4
+  }
+
   return (
     <group {...props} dispose={null}>
       <mesh
@@ -69,96 +77,16 @@ export function Model109N(props) {
         geometry={nodes.chair_swivel_star_back_no0.geometry}
         material={nodes.chair_swivel_star_back_no0.material}
       />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_0.geometry}
-        material={nodes.wall_0.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_5.geometry}
-        material={nodes.wall_5.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_6.geometry}
-        material={nodes.wall_6.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_1.geometry}
-        material={nodes.wall_1.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_7.geometry}
-        material={nodes.wall_7.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_8.geometry}
-        material={nodes.wall_8.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_2.geometry}
-        material={nodes.wall_2.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_9.geometry}
-        material={nodes.wall_9.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_10.geometry}
-        material={nodes.wall_10.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_3.geometry}
-        material={nodes.wall_3.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_11.geometry}
-        material={nodes.wall_11.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_12.geometry}
-        material={nodes.wall_12.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_4.geometry}
-        material={nodes.wall_4.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_13.geometry}
-        material={nodes.wall_13.material}
-      />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.wall_14.geometry}
-        material={nodes.wall_14.material}
-      />
+      {Array.from({ length: 14 }, (_, i) => i + 1).map((i) => (
+        <mesh
+          key={`wall_${i}`}
+          castShadow
+          receiveShadow
+          geometry={nodes[`wall_${i}`].geometry}
+          material={nodes[`wall_${i}`].material}
+          material-color={props.color}
+        />
+      ))}
       <mesh
         castShadow
         receiveShadow
@@ -200,12 +128,14 @@ export function Model109N(props) {
         receiveShadow
         geometry={nodes.door_0.geometry}
         material={nodes.door_0.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.door_2.geometry}
         material={nodes.door_2.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
@@ -224,12 +154,14 @@ export function Model109N(props) {
         receiveShadow
         geometry={nodes.floor_Dining_Room.geometry}
         material={nodes.floor_Dining_Room.material}
+        material-color={props.color}
       />
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.floor_Dining_Room_2.geometry}
         material={nodes.floor_Dining_Room_2.material}
+        material-color={props.color}
       />
     </group>
   )
