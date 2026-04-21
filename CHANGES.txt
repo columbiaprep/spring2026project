@@ -1,0 +1,76 @@
+────────────────────────────────────────────────────────────────
+CHANGES — Study Buddy Email / Connect Feature
+Branch: studygroup
+Date: 2026-04-08
+────────────────────────────────────────────────────────────────
+
+NEW FILES
+─────────
+1. app/armen/data/studentGradYears.ts
+   - Maps student IDs to 2-digit graduation years (e.g. 121450 → 27)
+   - Covers 5 students for now: Azadian, Weiner, Abarshalin, Berman, Lawrence
+   - Exports getStudentEmail(name, id) which derives a CGPS email address
+     from "Last, First" name + grad year, e.g. "aazadian27@cgps.org"
+
+2. app/api/send-connect-email/route.ts
+   - Next.js POST API route that sends two Mailgun emails on connect:
+       a) Invite to the matched student (recipient)
+       b) Receipt confirmation to the student who clicked Connect (sender)
+   - Shared free periods are formatted as real dates + start times,
+     e.g. "4/10 10:55 am", by looking up the next upcoming calendar
+     date for each cycle day from cycleDays.ts
+   - Uses MAILGUN_API_KEY + MAILGUN_DOMAIN from .env.local
+   - Sending domain: cgps.aubreycodes.dev
+
+3. .env.local
+   - MAILGUN_API_KEY — Mailgun private API key
+   - MAILGUN_DOMAIN=cgps.aubreycodes.dev
+
+MODIFIED FILES
+──────────────
+4. app/armen/data/periodTimes.ts
+   - Added getPeriodStartTime(letter, cycleDay) export
+   - Returns the start time of a period formatted as "10:55 am" / "1:25 pm"
+     (used by the API route to build date+time strings for emails)
+
+5. app/armen/[studentId]/StudentHome.tsx
+   - DetailScreenProps: added currentStudent: Student prop
+   - Root component: passes currentStudent down to <DetailScreen>
+   - DetailScreen: added connectState ("idle" | "sending" | "sent" | "error")
+     and handleConnect() async function that POSTs to /api/send-connect-email
+   - Replaced the static "discovery only" note at the bottom of DetailScreen
+     with a live "Connect with [Name]" button that shows sending/sent/error states
+   - On click, sends senderName, senderId, recipientName, recipientId,
+     className, and sharedFrees to the API route
+
+EMAIL FORMAT
+────────────
+Recipient receives:
+  Subject: Study Invite — [Class Name]
+
+  Hey [First],
+  [Sender] would like to study [Class] with you.
+
+  Here are your next available shared free periods:
+    • 4/10 10:55 am
+    • 4/14 1:25 pm
+
+  Email [Sender first name] to confirm: [sender email]
+  — Study Buddies @ CGPS
+
+Sender receives:
+  Subject: Your Study Invite — [Class Name] (sent)
+
+  Hey [First],
+  Your study invite for [Class] was sent to [Recipient] ([email]).
+  Shared free periods you included: ...
+  They'll email you at [your email] to confirm.
+  — Study Buddies @ CGPS
+
+KNOWN LIMITATIONS / TODO
+─────────────────────────
+- studentGradYears.ts only has 5 students; add more as needed
+- Mailgun sandbox mode requires manually authorizing each recipient email
+  in the Mailgun dashboard (not needed for cgps.aubreycodes.dev, a verified domain)
+- No deduplication: clicking Connect multiple times will send duplicate emails
+────────────────────────────────────────────────────────────────
