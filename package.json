@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.8",
+    "@next/swc-darwin-arm64": "^16.2.4",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@types/three": "^0.183.1",
     "firebase": "^12.11.0",
     "framer-motion": "^12.34.0",
-    "next": "16.1.6",
+    "next": "^16.2.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "three": "^0.183.2"
