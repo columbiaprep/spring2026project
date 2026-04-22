@@ -2,6 +2,7 @@
 
 import * as THREE from 'three'
 import React, { Suspense, useRef, useState } from 'react'
+import { Button, Popover } from '@heroui/react'
 import { Canvas, useFrame, ThreeElements, useLoader } from '@react-three/fiber'
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
@@ -25,6 +26,30 @@ import { UpperLibraryModel } from './UpperLibraryModel'
 export default function Grant() {
 
   const [floorOne, setFloorOne] = useState(false)
+  
+  const roomsMap = [
+  { name: "109N"},
+  { name: "110N"},
+  { name: "113N"},
+  { name: "MusicRoom1"},
+  { name: "MusicRoom2"},
+  { name: "TechHub"}
+  ]
+
+  const [rooms, setRooms] = useState(
+    roomsMap.map(room => ({
+      name: room.name,
+      active: false
+    }))
+  );
+
+  function toggleRoomInfo(index) {
+    setRooms(prev =>
+      prev.map((room, i) =>
+        i === index ? { ...room, active: !room.active } : room
+      )
+    )
+  }
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
@@ -35,6 +60,7 @@ export default function Grant() {
       >
         Floor 1
       </button>
+
       <Canvas camera={{ position: [-2, 15, 10], fov: 50 }}>
         <Suspense fallback={null}>
           <ambientLight intensity={Math.PI / 2} />
@@ -82,23 +108,42 @@ export default function Grant() {
           rotation={[0, 2 * Math.PI, 0]}
           />
 
-          {floorOne && (
+          {floorOne ? (
             <Room
             model={Model109N}
             position={[0.57, 2.75, -12.27]}
             rotation={[0, 2 * Math.PI, 0]}
             />
-          )}
+          ) : null}
           
           <OrbitControls />
         </Suspense>
       </Canvas>
+
+      {/* 
+        Loop through items
+        For each item:
+        - If active is true → render a div
+        - If false → render nothing (null)
+      */}
+      {rooms.map((room, index) =>  
+
+        room.active ? (  
+          <div key={`display-${index}`}>  
+            {/* Show which room is active */}
+            <Popover> Room {room.name} </Popover>
+          </div>  
+
+        ) : null  
+
+      )}
+
     </div>
   )
 }
 
 
-function Room({ model: Model, ...props }) {
+function Room({ model: Model, rooms, setRooms, ...props }) {
   const [hovered, setHovered] = React.useState(false)
   const [active, setActive] = React.useState(false)
 
@@ -111,7 +156,12 @@ function Room({ model: Model, ...props }) {
       
       onPointerEnter={(e) => {
         e.stopPropagation()
-        setHovered(true)
+        {setRooms(prev =>
+          prev.map((room, i) =>
+            i === index ? { ...room, active: !room.active } : room
+          )
+        )}
+
       }}
       onPointerLeave={(e) => {
         e.stopPropagation()
