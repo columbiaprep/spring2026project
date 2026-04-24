@@ -1,7 +1,6 @@
 "use client";
-// Tells Next.js this file runs in the browser (not server-side)
-
-import { db } from '@/firebase-config'; // your firebase config file
+import { db } from '@/firebase-config'
+import { collection, getDocs} from 'firebase/firestore'
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext"; // your auth context
 import { useRouter } from "next/navigation"; // Next.js router
