@@ -1,6 +1,7 @@
 "use client";
 // Tells Next.js this file runs in the browser (not server-side)
 
+import { db } from '@/firebase-config'; // your firebase config file
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext"; // your auth context
 import { useRouter } from "next/navigation"; // Next.js router
@@ -242,6 +243,7 @@ function CGPSLogo() {
 
 // ── Main component ──
 export default function CGPSDashboard() {
+  console.log(db); // Just to verify Firestore is imported correctly
   const { user, signInWithGoogle, signOut } = useAuth();
   const router = useRouter();
 
