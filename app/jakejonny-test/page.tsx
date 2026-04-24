@@ -243,6 +243,19 @@ function CGPSLogo() {
 
 // ── Main component ──
 export default function CGPSDashboard() {
+
+  useEffect(() => {
+        async function fetchData() {
+            const snapshot = await getDocs(collection(db, "students"))
+            const data = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }))
+            console.log(data)
+        }
+        fetchData()
+    }, [])
+
   console.log(db); // Just to verify Firestore is imported correctly
   const { user, signInWithGoogle, signOut } = useAuth();
   const router = useRouter();
