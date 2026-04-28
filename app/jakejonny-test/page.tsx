@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase-config";
 
 // ── TYPE DEFINITIONS ──
 type Room = {
@@ -254,6 +256,18 @@ export default function CGPSDashboard() {
   const [teacherForm, setTeacherForm] = useState({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
   const [formSaved, setFormSaved] = useState(false);
 
+  useEffect(() => {
+        async function fetchData() {
+            const snapshot = await getDocs(collection(db, "students"))
+            const data = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }))
+            console.log(data)
+        }
+        fetchData()
+    }, [])
+    
   // Email sending function
   async function sendEmail(to: string, subject: string, html: string) {
     try {
