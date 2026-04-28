@@ -1,9 +1,7 @@
 "use client";
-import { db } from '@/firebase-config'
-import { collection, getDocs} from 'firebase/firestore'
+
 import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext"; // your auth context
-import { useRouter } from "next/navigation"; // Next.js router
+import { useAuth } from "@/context/AuthContext";
 
 // ── TYPE DEFINITIONS ──
 type Room = {
@@ -242,24 +240,8 @@ function CGPSLogo() {
 
 // ── Main component ──
 export default function CGPSDashboard() {
-
-  useEffect(() => {
-        async function fetchData() {
-            const snapshot = await getDocs(collection(db, "students"))
-            const data = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }))
-            console.log(data)
-        }
-        fetchData()
-    }, [])
-
-  console.log(db); // Just to verify Firestore is imported correctly
   const { user, signInWithGoogle, signOut } = useAuth();
-  const router = useRouter();
 
-  // Your existing states
   const [activeTab, setActiveTab] = useState<"rooms" | "officehours">("rooms");
   const [rooms, setRooms] = useState<Room[]>(DUMMY_ROOMS);
   const [bookedRoomId, setBookedRoomId] = useState<number | null>(null);
@@ -272,7 +254,6 @@ export default function CGPSDashboard() {
   const [teacherForm, setTeacherForm] = useState({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
   const [formSaved, setFormSaved] = useState(false);
 
-  // Auto-dismiss messages
   useEffect(() => {
     if (!roomMessage) return;
     const t = setTimeout(() => setRoomMessage(null), 3000);
@@ -285,7 +266,6 @@ export default function CGPSDashboard() {
     return () => clearTimeout(t);
   }, [ohMessage]);
 
-  // ── Functions: booking, unbooking, form submission, etc. ──
   function bookRoom(id: number) {
     if (bookedRoomId !== null) {
       setRoomMessage("You already have a room booked. Unbook it first.");
@@ -318,7 +298,6 @@ export default function CGPSDashboard() {
     );
   }
 
-  // Office hours booking functions
   function bookOfficeHour(id: number) {
     setOfficeHours(prev =>
       prev.map(oh => {
@@ -357,7 +336,6 @@ export default function CGPSDashboard() {
     setTimeout(() => setFormSaved(false), 2500);
   }
 
-  // Derived data
   const filteredOH = officeHours.filter(oh =>
     oh.name.toLowerCase().includes(ohSearch.toLowerCase()) ||
     oh.subject.toLowerCase().includes(ohSearch.toLowerCase()) ||
@@ -371,7 +349,6 @@ export default function CGPSDashboard() {
     return acc;
   }, {});
 
-  // Render
   return (
     <div style={{
       minHeight: "100vh",
@@ -380,7 +357,6 @@ export default function CGPSDashboard() {
       color: "#e2e8f0",
     }}>
 
-      {/* ── Inline styles for fonts and scrollbar ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
         * { box-sizing: border-box; }
@@ -398,7 +374,6 @@ export default function CGPSDashboard() {
         .toast { animation: slideDown 0.3s ease; }
       `}</style>
 
-      {/* ── Header ── */}
       <header style={{
         background: "linear-gradient(180deg, #0d1526 0%, #0a0f1a 100%)",
         borderBottom: "1px solid #1e293b",
@@ -409,7 +384,6 @@ export default function CGPSDashboard() {
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
-          {/* School name */}
           <div style={{ paddingTop: 20, paddingBottom: 4 }}>
             <div style={{ marginBottom: 10 }}><CGPSLogo /></div>
             <div style={{
@@ -423,14 +397,12 @@ export default function CGPSDashboard() {
             </div>
           </div>
 
-          {/* Title + sign-in/out */}
           <div style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             paddingBottom: 0,
           }}>
-            {/* Title */}
             <div>
               <h1 style={{
                 fontSize: 26,
@@ -444,7 +416,6 @@ export default function CGPSDashboard() {
               </p>
             </div>
 
-            {/* Sign-in / Sign-out button */}
             <div style={{ position: "absolute", top: 20, right: 40, zIndex: 1000 }}>
               {user ? (
                 <button onClick={signOut} style={{
@@ -478,7 +449,6 @@ export default function CGPSDashboard() {
                   fontWeight: 600,
                   fontSize: 13,
                 }}>
-                  {/* Google icon SVG */}
                   <svg viewBox="0 0 24 24" width="20" height="20" style={{ display: "block" }}>
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -491,7 +461,6 @@ export default function CGPSDashboard() {
             </div>
           </div>
 
-          {/* Tabs */}
           <div style={{ display: "flex", gap: 2, marginTop: 8 }}>
             {[
               { id: "rooms" as const, label: "Quiet Spaces", icon: "🏫" },
@@ -519,33 +488,559 @@ export default function CGPSDashboard() {
         </div>
       </header>
 
-      {/* ── Main Content ── */}
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 32px 64px" }}>
-        {/* ROOMS TAB */}
         {activeTab === "rooms" && (
           <div>
-            {/* Your existing rooms tab content, including attestation checkbox, messages, and room grid */}
-            {/* You can copy your prior rooms code here, unchanged */}
-            {/* For brevity, I won't paste it all again, but just keep your JSX for that section */}
-            {/* ... your rooms code ... */}
-            {/* Example placeholder */}
-            <div>
-              {/* Your Room booking UI here, as previously */}
+            <div style={{
+              background: "#0f172a",
+              border: "1px solid #1e293b",
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 24,
+            }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={attested}
+                  onChange={(e) => setAttested(e.target.checked)}
+                  style={{
+                    marginTop: 2,
+                    width: 18,
+                    height: 18,
+                    accentColor: "#38bdf8",
+                    cursor: "pointer",
+                  }}
+                />
+                <span style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.5 }}>
+                  I attest that I will be using this classroom space for <strong>quiet, independent work</strong> and will respect the teacher and ongoing class. I understand that disruptive behavior may result in loss of booking privileges.
+                </span>
+              </label>
             </div>
+
+            {roomMessage && (
+              <div className="toast" style={{
+                background: roomMessage.startsWith("✓") ? "#065f46" : "#991b1b",
+                border: roomMessage.startsWith("✓") ? "1px solid #047857" : "1px solid #b91c1c",
+                color: roomMessage.startsWith("✓") ? "#86efac" : "#fca5a5",
+                borderRadius: 10,
+                padding: "12px 18px",
+                marginBottom: 20,
+                fontSize: 14,
+                fontWeight: 600,
+              }}>
+                {roomMessage}
+              </div>
+            )}
+
+            {!attested ? (
+              <div style={{
+                background: "#0f172a",
+                border: "1px dashed #1e293b",
+                borderRadius: 16,
+                padding: "56px 24px",
+                textAlign: "center",
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>☝️</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#475569" }}>
+                  Check the box above to view and book rooms
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                gap: 16,
+              }}>
+                {rooms.map(room => {
+                  const inSession = isClassNow(room.classStart, room.classEnd);
+                  const isFull = room.currentOccupancy >= room.capacity;
+                  const isDisabled = bookedRoomId !== null && bookedRoomId !== room.id;
+
+                  let statusLabel = "Available";
+                  let statusBg = "#052e16";
+                  let statusColor = "#86efac";
+
+                  if (inSession) {
+                    statusLabel = "Class in Session";
+                    statusBg = "#3b0f0f";
+                    statusColor = "#fca5a5";
+                  } else if (isFull) {
+                    statusLabel = "Full";
+                    statusBg = "#1c1917";
+                    statusColor = "#78716c";
+                  } else if (room.userBooked) {
+                    statusLabel = "Your Booking";
+                    statusBg = "#0c1a3b";
+                    statusColor = "#93c5fd";
+                  }
+
+                  return (
+                    <div
+                      key={room.id}
+                      className="card-hover"
+                      style={{
+                        background: room.userBooked
+                          ? "linear-gradient(135deg, #0c1a3b, #0f172a)"
+                          : "#0f172a",
+                        border: room.userBooked ? "1px solid #1d4ed8" : "1px solid #1e293b",
+                        borderRadius: 16,
+                        padding: 22,
+                        position: "relative",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                        <div>
+                          <div style={{
+                            fontFamily: "'IBM Plex Mono', monospace",
+                            fontSize: 22,
+                            fontWeight: 700,
+                            color: "#f8fafc",
+                            letterSpacing: "-0.02em",
+                          }}>
+                            {room.roomNumber}
+                          </div>
+                          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                            {room.teacher}
+                          </div>
+                        </div>
+
+                        <span style={{
+                          background: statusBg,
+                          color: statusColor,
+                          border: `1px solid ${statusColor}30`,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                        }}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        background: "#0a0f1a",
+                        borderRadius: 8,
+                        padding: "10px 14px",
+                        marginBottom: 12,
+                      }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#cbd5e1" }}>
+                          {room.className}
+                        </div>
+                        <div style={{
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          fontSize: 12,
+                          color: "#38bdf8",
+                          marginTop: 3,
+                        }}>
+                          {formatTime(room.classStart)} – {formatTime(room.classEnd)}
+                        </div>
+                      </div>
+
+                      <OccupancyBar current={room.currentOccupancy} capacity={room.capacity} />
+
+                      <div style={{ marginTop: 16 }}>
+                        {room.userBooked ? (
+                          <button
+                            onClick={() => unbookRoom(room.id)}
+                            style={{
+                              width: "100%",
+                              padding: "10px",
+                              background: "transparent",
+                              border: "1px solid #ef4444",
+                              color: "#ef4444",
+                              borderRadius: 8,
+                              fontWeight: 600,
+                              fontSize: 13,
+                            }}
+                          >
+                            Unbook Space
+                          </button>
+                        ) : inSession ? (
+                          <button disabled style={{
+                            width: "100%",
+                            padding: "10px",
+                            background: "#1e293b",
+                            border: "1px solid #334155",
+                            color: "#475569",
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 13,
+                            cursor: "not-allowed",
+                          }}>
+                            Unavailable
+                          </button>
+                        ) : isFull ? (
+                          <button disabled style={{
+                            width: "100%",
+                            padding: "10px",
+                            background: "#1e293b",
+                            border: "1px solid #334155",
+                            color: "#475569",
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 13,
+                            cursor: "not-allowed",
+                          }}>
+                            Room Full
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => bookRoom(room.id)}
+                            disabled={isDisabled}
+                            style={{
+                              width: "100%",
+                              padding: "10px",
+                              background: isDisabled ? "transparent" : "linear-gradient(135deg, #1d4ed8, #0284c7)",
+                              border: isDisabled ? "1px solid #334155" : "none",
+                              color: isDisabled ? "#475569" : "#fff",
+                              borderRadius: 8,
+                              fontWeight: 600,
+                              fontSize: 13,
+                              cursor: isDisabled ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {isDisabled ? "Already Booked Elsewhere" : "Book Space"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
-        {/* OFFICE HOURS TAB */}
         {activeTab === "officehours" && (
           <div>
-            {/* Your existing office hours content, including form, search, grouped sessions */}
-            {/* ... your office hours code ... */}
-            {/* Make sure to include all your JSX here */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#f1f5f9", margin: 0 }}>
+                  Teacher Office Hours
+                </h2>
+                <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
+                  {officeHours.length} session{officeHours.length !== 1 ? "s" : ""} available this week
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowTeacherForm(f => !f)}
+                style={{
+                  background: showTeacherForm ? "#1e293b" : "linear-gradient(135deg, #1d4ed8, #0284c7)",
+                  color: showTeacherForm ? "#94a3b8" : "#fff",
+                  border: showTeacherForm ? "1px solid #334155" : "none",
+                  borderRadius: 10,
+                  padding: "10px 18px",
+                  fontWeight: 600,
+                  fontSize: 13,
+                }}
+              >
+                {showTeacherForm ? "✕ Cancel" : "+ Post Office Hours"}
+              </button>
+            </div>
+
+            {showTeacherForm && (
+              <div style={{
+                background: "#0f172a",
+                border: "1px solid #1e293b",
+                borderRadius: 16,
+                padding: 24,
+                marginBottom: 28,
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#94a3b8", marginBottom: 18, textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                  New Office Hours Entry
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14, marginBottom: 14 }}>
+                  {[
+                    { label: "Teacher Name", key: "name", placeholder: "e.g. Ms. Johnson" },
+                    { label: "Subject", key: "subject", placeholder: "e.g. AP Biology" },
+                    { label: "Room", key: "room", placeholder: "e.g. 204N" },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                        {label}
+                      </label>
+                      <input
+                        type="text"
+                        value={(teacherForm as any)[key]}
+                        onChange={e => setTeacherForm(f => ({ ...f, [key]: e.target.value }))}
+                        placeholder={placeholder}
+                        style={{
+                          width: "100%",
+                          background: "#0a0f1a",
+                          border: "1px solid #1e293b",
+                          borderRadius: 8,
+                          padding: "10px 12px",
+                          color: "#e2e8f0",
+                          fontSize: 14,
+                          fontFamily: "'IBM Plex Sans', sans-serif",
+                        }}
+                      />
+                    </div>
+                  ))}
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                      Day
+                    </label>
+                    <select
+                      value={teacherForm.day}
+                      onChange={e => setTeacherForm(f => ({ ...f, day: e.target.value }))}
+                      style={{
+                        width: "100%",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        color: "#e2e8f0",
+                        fontSize: 14,
+                        fontFamily: "'IBM Plex Sans', sans-serif",
+                        appearance: "none",
+                      }}
+                    >
+                      {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                      Start
+                    </label>
+                    <input
+                      type="time"
+                      value={teacherForm.start}
+                      onChange={e => setTeacherForm(f => ({ ...f, start: e.target.value }))}
+                      style={{
+                        width: "100%",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        color: "#e2e8f0",
+                        fontSize: 14,
+                        colorScheme: "dark",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "'IBM Plex Mono', monospace" }}>
+                      End
+                    </label>
+                    <input
+                      type="time"
+                      value={teacherForm.end}
+                      onChange={e => setTeacherForm(f => ({ ...f, end: e.target.value }))}
+                      style={{
+                        width: "100%",
+                        background: "#0a0f1a",
+                        border: "1px solid #1e293b",
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        color: "#e2e8f0",
+                        fontSize: 14,
+                        colorScheme: "dark",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <button
+                    onClick={handleTeacherFormSubmit}
+                    style={{
+                      background: "linear-gradient(135deg, #1d4ed8, #0284c7)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "11px 24px",
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}
+                  >
+                    Post Hours
+                  </button>
+
+                  {formSaved && (
+                    <span className="toast" style={{ fontSize: 14, color: "#86efac", fontWeight: 600 }}>
+                      ✓ Posted successfully!
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {ohMessage && (
+              <div className="toast" style={{
+                background: ohMessage.startsWith("✓") ? "#052e16" : "#3b0f0f",
+                border: `1px solid ${ohMessage.startsWith("✓") ? "#166534" : "#7f1d1d"}`,
+                color: ohMessage.startsWith("✓") ? "#86efac" : "#fca5a5",
+                borderRadius: 10,
+                padding: "12px 18px",
+                marginBottom: 20,
+                fontSize: 14,
+                fontWeight: 600,
+              }}>
+                {ohMessage}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 24 }}>
+              <input
+                value={ohSearch}
+                onChange={e => setOhSearch(e.target.value)}
+                placeholder="Search by teacher, subject, day, or room…"
+                style={{
+                  width: "100%",
+                  maxWidth: 400,
+                  background: "#0f172a",
+                  border: "1px solid #1e293b",
+                  borderRadius: 10,
+                  padding: "11px 16px",
+                  color: "#e2e8f0",
+                  fontSize: 14,
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                }}
+              />
+            </div>
+
+            {Object.keys(groupedOH).length === 0 && (
+              <div style={{
+                background: "#0f172a",
+                border: "1px dashed #1e293b",
+                borderRadius: 16,
+                padding: "64px 24px",
+                textAlign: "center",
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#475569" }}>
+                  No office hours found
+                </div>
+                <div style={{ fontSize: 13, color: "#334155", marginTop: 6 }}>
+                  Try a different search, or post new hours using the button above
+                </div>
+              </div>
+            )}
+
+            {DAYS.filter(d => groupedOH[d]).map(day => (
+              <div key={day} style={{ marginBottom: 32 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <DayPill day={day} />
+                  <div style={{ flex: 1, height: 1, background: "#1e293b" }} />
+                  <span style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 11,
+                    color: "#334155",
+                  }}>
+                    {groupedOH[day].length} session{groupedOH[day].length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                  {groupedOH[day].map(oh => (
+                    <div
+                      key={oh.id}
+                      className="card-hover"
+                      style={{
+                        background: oh.userBooked
+                          ? "linear-gradient(135deg, #0c1a3b, #0f172a)"
+                          : "#0f172a",
+                        border: oh.userBooked ? "1px solid #1d4ed8" : "1px solid #1e293b",
+                        borderRadius: 14,
+                        padding: "18px 20px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
+                            {oh.name}
+                          </div>
+                          <div style={{ fontSize: 13, color: "#64748b", marginTop: 2 }}>
+                            {oh.subject}
+                          </div>
+                        </div>
+                        {oh.userBooked && (
+                          <span style={{
+                            background: "#0c1a3b",
+                            color: "#93c5fd",
+                            border: "1px solid #1d4ed830",
+                            padding: "3px 10px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}>
+                            RSVP'd
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: "flex", gap: 16 }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
+                            Time
+                          </div>
+                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#38bdf8" }}>
+                            {formatTime(oh.start)} – {formatTime(oh.end)}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace", marginBottom: 3 }}>
+                            Room
+                          </div>
+                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>
+                            {oh.room}
+                          </div>
+                        </div>
+                      </div>
+
+                      {oh.userBooked ? (
+                        <button
+                          onClick={() => unbookOfficeHour(oh.id)}
+                          style={{
+                            width: "100%",
+                            padding: "9px",
+                            background: "transparent",
+                            border: "1px solid #ef4444",
+                            color: "#ef4444",
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 13,
+                          }}
+                        >
+                          Cancel RSVP
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => bookOfficeHour(oh.id)}
+                          style={{
+                            width: "100%",
+                            padding: "9px",
+                            background: "linear-gradient(135deg, #1d4ed8, #0284c7)",
+                            border: "none",
+                            color: "#fff",
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 13,
+                          }}
+                        >
+                          RSVP
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>
 
-      {/* ── Footer ── */}
       <footer style={{
         borderTop: "1px solid #1e293b",
         padding: "20px 32px",
