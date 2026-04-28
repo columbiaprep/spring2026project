@@ -254,6 +254,23 @@ export default function CGPSDashboard() {
   const [teacherForm, setTeacherForm] = useState({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
   const [formSaved, setFormSaved] = useState(false);
 
+  // Email sending function
+  async function sendEmail(to: string, subject: string, html: string) {
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  }
+
   useEffect(() => {
     if (!roomMessage) return;
     const t = setTimeout(() => setRoomMessage(null), 3000);
@@ -281,6 +298,36 @@ export default function CGPSDashboard() {
         const newOcc = room.currentOccupancy + 1;
         setBookedRoomId(id);
         setRoomMessage(`✓ Booked a spot in Room ${room.roomNumber}! Your teacher has been notified.`);
+        
+        // Send confirmation email
+        if (user?.email) {
+          const emailHTML = `
+            <div style="font-family: 'IBM Plex Sans', sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #1d4ed8, #0284c7); padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Room Booking Confirmation</h1>
+              </div>
+              <div style="background: #f8fafc; padding: 30px;">
+                <h2 style="color: #1e293b; margin-top: 0;">Your quiet space has been booked!</h2>
+                <div style="background: white; border-left: 4px solid #38bdf8; padding: 20px; margin: 20px 0;">
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Room:</strong> ${room.roomNumber}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Class:</strong> ${room.className}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Teacher:</strong> ${room.teacher}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Time:</strong> ${formatTime(room.classStart)} – ${formatTime(room.classEnd)}</p>
+                  <p style="margin: 0; color: #475569;"><strong>Current Occupancy:</strong> ${newOcc}/${room.capacity}</p>
+                </div>
+                <p style="color: #64748b; font-size: 14px;">Please remember to use this space for quiet, independent work and respect the teacher and ongoing class.</p>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">— CGPS Portal Team</p>
+              </div>
+            </div>
+          `;
+          
+          sendEmail(
+            user.email,
+            `Room ${room.roomNumber} Booking Confirmation - CGPS Portal`,
+            emailHTML
+          );
+        }
+        
         return { ...room, currentOccupancy: newOcc, userBooked: true };
       })
     );
@@ -307,6 +354,36 @@ export default function CGPSDashboard() {
           return oh;
         }
         setOhMessage(`✓ RSVP'd for ${oh.name}'s office hours on ${oh.day}!`);
+        
+        // Send confirmation email
+        if (user?.email) {
+          const emailHTML = `
+            <div style="font-family: 'IBM Plex Sans', sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #1d4ed8, #0284c7); padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Office Hours RSVP Confirmation</h1>
+              </div>
+              <div style="background: #f8fafc; padding: 30px;">
+                <h2 style="color: #1e293b; margin-top: 0;">You're all set for office hours!</h2>
+                <div style="background: white; border-left: 4px solid #38bdf8; padding: 20px; margin: 20px 0;">
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Teacher:</strong> ${oh.name}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Subject:</strong> ${oh.subject}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Day:</strong> ${oh.day}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Time:</strong> ${formatTime(oh.start)} – ${formatTime(oh.end)}</p>
+                  <p style="margin: 0; color: #475569;"><strong>Room:</strong> ${oh.room}</p>
+                </div>
+                <p style="color: #64748b; font-size: 14px;">Looking forward to seeing you there!</p>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">— CGPS Portal Team</p>
+              </div>
+            </div>
+          `;
+          
+          sendEmail(
+            user.email,
+            `Office Hours RSVP: ${oh.name} - ${oh.day} - CGPS Portal`,
+            emailHTML
+          );
+        }
+        
         return { ...oh, userBooked: true };
       })
     );
