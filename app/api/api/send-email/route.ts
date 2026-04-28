@@ -20,31 +20,32 @@ export async function POST(request: NextRequest) {
     const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
     const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN;
 
-    console.log('Mailgun config:', {
-      domain: MAILGUN_DOMAIN,
-      hasApiKey: !!MAILGUN_API_KEY
+    console.log('Environment check:', {
+      domain: MAILGUN_DOMAIN || 'MISSING',
+      hasApiKey: !!MAILGUN_API_KEY,
+      nodeEnv: process.env.NODE_ENV
     });
 
     if (!MAILGUN_API_KEY || !MAILGUN_DOMAIN) {
-      console.error('Mailgun credentials not configured');
+      console.error('❌ Mailgun credentials not configured!');
+      console.error('Make sure you have .env.local with:');
+      console.error('MAILGUN_API_KEY=your_key');
+      console.error('MAILGUN_DOMAIN=your_domain');
       return NextResponse.json(
-        { error: 'Email service not configured' },
+        { error: 'Email service not configured - check server logs' },
         { status: 500 }
       );
     }
 
-    // Mailgun API endpoint
     const url = `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`;
     console.log('Mailgun URL:', url);
 
-    // Create URLSearchParams for form data (Mailgun expects form-encoded data)
     const params = new URLSearchParams();
     params.append('from', `CGPS Portal <noreply@${MAILGUN_DOMAIN}>`);
     params.append('to', to);
     params.append('subject', subject);
     params.append('html', html);
 
-    // Send email via Mailgun
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -77,4 +78,17 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Add GET handler to help with debugging
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Email API is running. Use POST to send emails.',
+    requiredFields: ['to', 'subject', 'html'],
+    envCheck: {
+      hasMailgunKey: !!process.env.MAILGUN_API_KEY,
+      hasMailgunDomain: !!process.env.MAILGUN_DOMAIN,
+      domain: process.env.MAILGUN_DOMAIN || 'NOT SET'
+    }
+  });
 }
