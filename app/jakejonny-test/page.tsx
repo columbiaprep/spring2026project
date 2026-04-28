@@ -264,7 +264,10 @@ export default function CGPSDashboard() {
       });
       
       if (!response.ok) {
-        console.error('Failed to send email');
+        const errorData = await response.json();
+        console.error('Failed to send email:', response.status, errorData);
+      } else {
+        console.log('Email sent successfully to:', to);
       }
     } catch (error) {
       console.error('Error sending email:', error);
