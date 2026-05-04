@@ -268,6 +268,9 @@ export default function CGPSDashboard() {
         fetchData()
     }, [])
     
+  if (loading) return null;
+  console.log(db)
+  
   // Email sending function
   async function sendEmail(to: string, subject: string, html: string) {
     try {
