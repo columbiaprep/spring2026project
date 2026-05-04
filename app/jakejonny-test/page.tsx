@@ -255,22 +255,23 @@ export default function CGPSDashboard() {
   const [showTeacherForm, setShowTeacherForm] = useState(false);
   const [teacherForm, setTeacherForm] = useState({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
   const [formSaved, setFormSaved] = useState(false);
+  const [data, setData] = useState<object[]>([]);
+    useEffect(() => {
+          async function fetchData() {
+              const snapshot = await getDocs(collection(db, "students"))
+              const data = snapshot.docs.map((doc) => ({
+                  id: doc.id,
+                  ...doc.data(),
+              }))
+              setData(result)
+              console.log(data)
+          }
+          fetchData()
+      }, [])
+      
+    if (loading) return null;
+    console.log(db);
 
-  useEffect(() => {
-        async function fetchData() {
-            const snapshot = await getDocs(collection(db, "students"))
-            const data = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }))
-            console.log(data)
-        }
-        fetchData()
-    }, [])
-    
-  if (loading) return null;
-  console.log(db)
-  
   // Email sending function
   async function sendEmail(to: string, subject: string, html: string) {
     try {
