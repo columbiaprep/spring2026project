@@ -7,7 +7,7 @@ import { db } from "@/firebase-config";
 
 // ── TYPE DEFINITIONS ──
 type Room = {
-  id: number;
+  id: string;
   roomNumber: string;
   className: string;
   classStart: string;
@@ -19,8 +19,8 @@ type Room = {
 };
 
 type OfficeHour = {
-  id: number;
-  name: string;
+  id: string;
+  teacherName: string;
   subject: string;
   day: string;
   start: string;
@@ -53,107 +53,6 @@ function getOccupancyColor(current: number, capacity: number): string {
   if (ratio >= 0.5) return "#eab308";
   return "#22c55e";
 }
-
-// ── Dummy data ──
-const DUMMY_ROOMS: Room[] = [
-  {
-    id: 1,
-    roomNumber: "302W",
-    className: "Algebra II",
-    classStart: "09:15",
-    classEnd: "10:00",
-    capacity: 20,
-    currentOccupancy: 3,
-    teacher: "Mr. Anderson",
-    userBooked: false,
-  },
-  {
-    id: 2,
-    roomNumber: "504N",
-    className: "Physics",
-    classStart: "11:45",
-    classEnd: "12:30",
-    capacity: 20,
-    currentOccupancy: 20,
-    teacher: "Ms. Bennett",
-    userBooked: false,
-  },
-  {
-    id: 3,
-    roomNumber: "408N",
-    className: "English",
-    classStart: "13:20",
-    classEnd: "14:10",
-    capacity: 18,
-    currentOccupancy: 6,
-    teacher: "Mr. Chen",
-    userBooked: false,
-  },
-  {
-    id: 4,
-    roomNumber: "201S",
-    className: "AP Chemistry",
-    classStart: "14:30",
-    classEnd: "15:20",
-    capacity: 16,
-    currentOccupancy: 9,
-    teacher: "Dr. Patel",
-    userBooked: false,
-  },
-];
-
-const DUMMY_OFFICE_HOURS: OfficeHour[] = [
-  {
-    id: 1,
-    name: "Mr. Anderson",
-    subject: "Algebra II",
-    day: "Monday",
-    start: "08:00",
-    end: "08:45",
-    room: "302W",
-    userBooked: false,
-  },
-  {
-    id: 2,
-    name: "Ms. Bennett",
-    subject: "Physics",
-    day: "Tuesday",
-    start: "13:00",
-    end: "13:45",
-    room: "504N",
-    userBooked: false,
-  },
-  {
-    id: 3,
-    name: "Mr. Chen",
-    subject: "English",
-    day: "Wednesday",
-    start: "15:30",
-    end: "16:15",
-    room: "408N",
-    userBooked: false,
-  },
-  {
-    id: 4,
-    name: "Dr. Patel",
-    subject: "AP Chemistry",
-    day: "Thursday",
-    start: "07:45",
-    end: "08:30",
-    room: "201S",
-    userBooked: false,
-  },
-  {
-    id: 5,
-    name: "Ms. Rivera",
-    subject: "AP History",
-    day: "Friday",
-    start: "12:00",
-    end: "12:45",
-    room: "110W",
-    userBooked: false,
-  },
-];
 
 // ── Sub-components ──
 function DayPill({ day }: { day: string }) {
@@ -245,30 +144,57 @@ export default function CGPSDashboard() {
   const { user, signInWithGoogle, signOut } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"rooms" | "officehours">("rooms");
-  const [rooms, setRooms] = useState<Room[]>(DUMMY_ROOMS);
-  const [bookedRoomId, setBookedRoomId] = useState<number | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [officeHours, setOfficeHours] = useState<OfficeHour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bookedRoomId, setBookedRoomId] = useState<string | null>(null);
   const [roomMessage, setRoomMessage] = useState<string | null>(null);
   const [attested, setAttested] = useState(false);
-  const [officeHours, setOfficeHours] = useState<OfficeHour[]>(DUMMY_OFFICE_HOURS);
   const [ohMessage, setOhMessage] = useState<string | null>(null);
   const [ohSearch, setOhSearch] = useState("");
   const [showTeacherForm, setShowTeacherForm] = useState(false);
   const [teacherForm, setTeacherForm] = useState({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
   const [formSaved, setFormSaved] = useState(false);
-  const [data, setData] = useState<object[]>([]);
-    useEffect(() => {
-          async function fetchData() {
-              const snapshot = await getDocs(collection(db, "students"))
-              const data = snapshot.docs.map((doc) => ({
-                  id: doc.id,
-                  ...doc.data(),
-              }))
-              setData(result)
-              console.log(data)
-          }
-          fetchData()
-      }, [])
-      
+  useEffect(() => {
+    async function fetchRooms() {
+      try {
+        const snapshot = await getDocs(collection(db, "rooms"));
+        const roomsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          userBooked: false,
+        }));
+        setRooms(roomsData as Room[]);
+        console.log("Rooms:", roomsData);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
+    async function fetchOfficeHours() {
+      try {
+        const snapshot = await getDocs(collection(db, "officeHours"));
+        const ohData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          userBooked: false,
+        }));
+        setOfficeHours(ohData as OfficeHour[]);
+        console.log("Office Hours:", ohData);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchOfficeHours();
+  }, []);
+
     if (loading) return null;
     console.log(db);
 
@@ -304,7 +230,7 @@ export default function CGPSDashboard() {
     return () => clearTimeout(t);
   }, [ohMessage]);
 
-  function bookRoom(id: number) {
+  function bookRoom(id: string) {
     if (bookedRoomId !== null) {
       setRoomMessage("You already have a room booked. Unbook it first.");
       return;
@@ -354,7 +280,7 @@ export default function CGPSDashboard() {
     );
   }
 
-  function unbookRoom(id: number) {
+  function unbookRoom(id: string) {
     setRooms(prev =>
       prev.map(room => {
         if (room.id !== id) return room;
@@ -366,7 +292,7 @@ export default function CGPSDashboard() {
     );
   }
 
-  function bookOfficeHour(id: number) {
+  function bookOfficeHour(id: string) {
     setOfficeHours(prev =>
       prev.map(oh => {
         if (oh.id !== id) return oh;
@@ -374,7 +300,7 @@ export default function CGPSDashboard() {
           setOhMessage("You've already RSVP'd to this session.");
           return oh;
         }
-        setOhMessage(`✓ RSVP'd for ${oh.name}'s office hours on ${oh.day}!`);
+        setOhMessage(`✓ RSVP'd for ${oh.teacherName}'s office hours on ${oh.day}!`);
         
         // Send confirmation email
         if (user?.email) {
@@ -386,7 +312,7 @@ export default function CGPSDashboard() {
               <div style="background: #f8fafc; padding: 30px;">
                 <h2 style="color: #1e293b; margin-top: 0;">You're all set for office hours!</h2>
                 <div style="background: white; border-left: 4px solid #38bdf8; padding: 20px; margin: 20px 0;">
-                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Teacher:</strong> ${oh.name}</p>
+                  <p style="margin: 0 0 10px 0; color: #475569;"><strong>Teacher:</strong> ${oh.teacherName}</p>
                   <p style="margin: 0 0 10px 0; color: #475569;"><strong>Subject:</strong> ${oh.subject}</p>
                   <p style="margin: 0 0 10px 0; color: #475569;"><strong>Day:</strong> ${oh.day}</p>
                   <p style="margin: 0 0 10px 0; color: #475569;"><strong>Time:</strong> ${formatTime(oh.start)} – ${formatTime(oh.end)}</p>
@@ -400,7 +326,7 @@ export default function CGPSDashboard() {
           
           sendEmail(
             user.email,
-            `Office Hours RSVP: ${oh.name} - ${oh.day} - CGPS Portal`,
+            `Office Hours RSVP: ${oh.teacherName} - ${oh.day} - CGPS Portal`,
             emailHTML
           );
         }
@@ -410,32 +336,40 @@ export default function CGPSDashboard() {
     );
   }
 
-  function unbookOfficeHour(id: number) {
+  function unbookOfficeHour(id: string) {
     setOfficeHours(prev =>
       prev.map(oh => {
         if (oh.id !== id) return oh;
-        setOhMessage(`✓ Cancelled your RSVP with ${oh.name}.`);
+        setOhMessage(`✓ Cancelled your RSVP with ${oh.teacherName}.`);
         return { ...oh, userBooked: false };
       })
     );
   }
 
   function handleTeacherFormSubmit() {
-    const { name, subject, start, end, room } = teacherForm;
+    const { name, subject, start, end, room, day } = teacherForm;
     if (!name || !subject || !start || !end || !room) return;
+
     const newEntry: OfficeHour = {
-      ...teacherForm,
-      id: Date.now(),
+      id: Date.now().toString(),
+      teacherName: name, // ✅ FIX HERE
+      subject,
+      day,
+      start,
+      end,
+      room,
       userBooked: false,
     };
+
     setOfficeHours(prev => [...prev, newEntry]);
+
     setTeacherForm({ name: "", subject: "", day: "Monday", start: "", end: "", room: "" });
     setFormSaved(true);
     setTimeout(() => setFormSaved(false), 2500);
   }
 
   const filteredOH = officeHours.filter(oh =>
-    oh.name.toLowerCase().includes(ohSearch.toLowerCase()) ||
+    oh.teacherName.toLowerCase().includes(ohSearch.toLowerCase()) ||
     oh.subject.toLowerCase().includes(ohSearch.toLowerCase()) ||
     oh.day.toLowerCase().includes(ohSearch.toLowerCase()) ||
     oh.room.toLowerCase().includes(ohSearch.toLowerCase())
@@ -1056,7 +990,7 @@ export default function CGPSDashboard() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>
-                            {oh.name}
+                            {oh.teacherName}
                           </div>
                           <div style={{ fontSize: 13, color: "#64748b", marginTop: 2 }}>
                             {oh.subject}
