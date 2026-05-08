@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { collection, getDocs, DocumentData } from "firebase/firestore";
+import { collection, getDocs, addDoc, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase-config";
 
 /* ───────────────────────────────
@@ -415,7 +415,7 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
   );
 }
 
-function handleTeacherFormSubmit() {
+async function handleTeacherFormSubmit() {
   if (
     !teacherForm.name ||
     !teacherForm.subject ||
@@ -425,30 +425,39 @@ function handleTeacherFormSubmit() {
     return;
   }
 
-  const newOH = {
-    id: crypto.randomUUID(),
+  const docData = {
     teacherName: teacherForm.name,
     subject: teacherForm.subject,
     day: teacherForm.day,
     start: teacherForm.start,
     end: teacherForm.end,
     room: teacherForm.room,
-    userBooked: false,
   };
 
-  setOfficeHours((prev) => [newOH, ...prev]);
+  try {
+    const docRef = await addDoc(collection(db, "officeHours"), docData);
 
-  setFormSaved(true);
-  setTimeout(() => setFormSaved(false), 2000);
+    const newOH: OfficeHour = {
+      id: docRef.id,
+      ...docData,
+      userBooked: false,
+    };
 
-  setTeacherForm({
-    name: "",
-    subject: "",
-    day: "Monday",
-    start: "",
-    end: "",
-    room: "",
-  });
+    setOfficeHours((prev) => [newOH, ...prev]);
+    setFormSaved(true);
+    setTimeout(() => setFormSaved(false), 2000);
+
+    setTeacherForm({
+      name: "",
+      subject: "",
+      day: "Monday",
+      start: "",
+      end: "",
+      room: "",
+    });
+  } catch (err) {
+    console.error("Failed to save office hours:", err);
+  }
 }
 /* ───────────────────────────────
    DAY PILL
