@@ -42,6 +42,17 @@ import { StairFrontdesk } from './StairFrontdesk'
 import { TheaterBehindStage } from './TheaterBehindStage'
 import { TheaterStage } from './TheaterStage'
 import { TheaterWalk } from './TheaterWalk'
+import { FloorThreeSouthHallway } from './FloorThreeSouthHallway'
+import { FloorThreeWalkway } from './FloorThreeWalkway'
+import { SouthStairsNearTheater } from './SouthStairsNearTheater'
+import { SouthThreaterStairsBottom } from './SouthThreaterStairsBottom'
+import { StairsSouth } from './StairsSouth'
+import { TerraceEast } from './TerraceEast'
+import { TerraceWest } from './TerraceWest'
+import { TheaterLobby } from './TheaterLobby'
+import { TheaterWalkLeft } from './TheaterWalkLeft'
+import { TopOfTheater } from './TopOfTheater'
+import { WeightRoom } from './WeightRoom'
 
 export default function MapOfSchool() {
 
@@ -133,6 +144,16 @@ export default function MapOfSchool() {
                 <Room model={Model113N} position={[-5.93, 0.09, 5.5]} rotation={[0, Math.PI, 0]} />
                 <Room model={Model110N} position={[-3.55, 0.35, -12.38]} rotation={[0, 2 * Math.PI, 0]} />
                 <Room model={Model109N} position={[0.57, 0.07, -12.27]} rotation={[0, 2 * Math.PI, 0]} />
+
+                {/* Ground plane — sits just below the lowest first-floor model (y≈-0.57) to create a
+                    visual ground level and separate floor 1 from the basement below */}
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2, -1.5, 1.7]}>
+                  {/* Wide enough to cover the full building footprint */}
+                  <planeGeometry args={[7.5, 20]} />
+                  {/* Dark blue-grey tint matching the scene background, semi-transparent so the
+                      basement is still faintly visible beneath it */}
+                  <meshStandardMaterial color="lightgray" transparent opacity={1} />
+                </mesh>
               </>
             )}
 
@@ -171,30 +192,56 @@ export default function MapOfSchool() {
       </div>
       
 
-      {/* popup card for selected room */}
+      {/* Popup card shown when a room is clicked — fixed to the top-right, 20px from each edge to match floor controls */}
       {selectedRoom && (
-        <div style={{ position: 'fixed', right: 20, top: 65, zIndex: 30 }}>
-          <Card>
-            <div style={{ padding: 12, minWidth: 180 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>{selectedRoom}</div>
+        <div style={{ position: 'fixed', right: 20, top: 90, zIndex: 30 }}>
+          <Card style={{
+            background: 'rgba(30,30,30,0.75)',         /* translucent dark grey */
+            backdropFilter: 'blur(12px)',               /* frosted glass blur */
+            borderRadius: 16,
+            minWidth: 240,
+            border: '1px solid rgba(255,255,255,0.2)', /* subtle light border, matches floor controls */
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          }}>
+            <div style={{ padding: 20 }}>
+              {/* Room name */}
+              <div style={{ fontWeight: 700, fontSize: 17, color: 'white', marginBottom: 14 }}>{selectedRoom}</div>
+              {/* Close button aligned to the right */}
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={() => setSelectedRoom(null)} style={{ padding: '6px 10px' }}>Close</button>
+                <button
+                  onClick={() => setSelectedRoom(null)}
+                  style={{ padding: '7px 16px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', cursor: 'pointer', fontSize: 13 }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </Card>
         </div>
       )}
 
-      <Card>
-        <div style={{ position: 'fixed', left: 20, top: 70, zIndex: 40, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button onClick={() => setBasement(!basement)}>Basement</button>
-          <button onClick={() => setFloorOne(!floorOne)}>Floor One</button>
-          <button onClick={() => setFloorTwo(!floorTwo)}>Floor Two</button>
-          <button onClick={() => setFloorThree(!floorThree)}>Floor Three</button>
-          <button onClick={() => setFloorFour(!floorFour)}>Floor Four</button>
-          <button onClick={() => setFloorFive(!floorFive)}>Floor Five</button>
-        </div>
-      </Card>
+      {/* Floor visibility toggle controls — fixed to the bottom-left, 20px from each edge to match room info card */}
+      <div style={{ position: 'fixed', left: 20, bottom: 20, zIndex: 40 }}>
+        {/* More transparent frosted glass card so it doesn't distract from the map */}
+        <Card style={{
+          background: 'rgba(30,30,30,0.45)',         /* more transparent than the room info card */
+          backdropFilter: 'blur(12px)',               /* frosted glass blur */
+          borderRadius: 16,
+          border: '1px solid rgba(255,255,255,0.2)', /* subtle light border, matches room info card */
+          boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: 8 }}>
+            {/* Floors listed top-to-bottom from highest to lowest, so they feel spatially correct */}
+            {/* Blue tint when the floor is toggled on, dim when off */}
+            <button onClick={() => setFloorFive(!floorFive)}  style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: floorFive  ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Floor Five</button>
+            <button onClick={() => setFloorFour(!floorFour)}  style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: floorFour  ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Floor Four</button>
+            <button onClick={() => setFloorThree(!floorThree)} style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: floorThree ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Floor Three</button>
+            <button onClick={() => setFloorTwo(!floorTwo)}   style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: floorTwo   ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Floor Two</button>
+            <button onClick={() => setFloorOne(!floorOne)}   style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: floorOne   ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Floor One</button>
+            <button onClick={() => setBasement(!basement)}   style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, background: basement   ? 'rgba(80,130,255,0.55)' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Basement</button>
+          </div>
+        </Card>
+      </div>
     </>
   )
 }
