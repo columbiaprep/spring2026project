@@ -318,6 +318,13 @@ export function TheaterWalk(props) {
       <mesh
         castShadow
         receiveShadow
+        geometry={nodes.floor_Living_Room.geometry}
+        material={nodes.floor_Living_Room.material}
+        position={[0, -0.01, -3.8]}
+      />
+      <mesh
+        castShadow
+        receiveShadow
         geometry={nodes.floor_Living_Room_2.geometry}
         material={nodes.floor_Living_Room_2.material}
       />

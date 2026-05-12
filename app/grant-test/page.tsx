@@ -45,7 +45,7 @@ import { TheaterWalk } from './TheaterWalk'
 import { FloorThreeSouthHallway } from './FloorThreeSouthHallway'
 import { FloorThreeWalkway } from './FloorThreeWalkway'
 import { SouthStairsNearTheater } from './SouthStairsNearTheater'
-import { SouthThreaterStairsBottom } from './SouthThreaterStairsBottom'
+import { SouthTheaterStairsBottom } from './SouthTheaterStairsBottom'
 import { StairsSouth } from './StairsSouth'
 import { TerraceEast } from './TerraceEast'
 import { TerraceWest } from './TerraceWest'
@@ -123,6 +123,19 @@ export default function MapOfSchool() {
           <Suspense fallback={null}>
             <ambientLight intensity={Math.PI / 2} />
 
+
+            {floorTwo && (
+              <>
+                <FloorThreeSouthHallway raycast={() => null} position={[0, 0, 0]} />
+                <FloorThreeWalkway raycast={() => null} position={[-1.5, 0, -7.5]} rotation={[0, Math.PI/2, 0]} />
+                
+                
+                <TerraceEast raycast={() => null} position={[0, 0, -15.5]} rotation={[0, Math.PI/2, 0]} />
+                <TerraceWest raycast={() => null} position={[7, 0, -15.5]} rotation={[0, Math.PI/2, 0]} />
+                <WeightRoom raycast={() => null} position={[-1.5, 0, -15.5]} rotation={[0, Math.PI/2, 0]} />
+              </>
+            )}
+
             {floorOne && (
               <>
                 <FrontDeskModel raycast={() => null} position={[7, 0.2, -9.15]} rotation={[0, Math.PI, 0]} />
@@ -167,10 +180,16 @@ export default function MapOfSchool() {
                 <BasementHallway raycast={() => null} position={[9.28, -2.63, -7]} rotation={[0, 0, 0]} />
                 <HallwayToTheater raycast={() => null} position={[6.78, -3.1, 5.3]} rotation={[0, Math.PI, 0]} />
                 
+                <TopOfTheater raycast={() => null} position={[4, -2.9, 31.5]} rotation={[0, Math.PI/2, 0]} />
                 <StairFromTheater raycast={() => null} position={[8.5, -5.55, 11.92]} rotation={[0, Math.PI/2, 0]} />
                 <TheaterStage raycast={() => null} position={[4.15, -5.55, 17.61]} rotation={[0, -Math.PI/2, 0]} />
                 <TheaterWalk raycast={() => null} position={[4.85, -5.55, 25.6]} rotation={[0, Math.PI, 0]} />
+                <TheaterWalkLeft raycast={() => null} position={[-1.34, -5.9, 26.5]} rotation={[0, 0, 0]} />
                 <TheaterBehindStage raycast={() => null} position={[11.18, -5.55, 17.1]} rotation={[0, Math.PI, 0]} />
+                <TheaterLobby raycast={() => null} position={[4.7, -5.62, 34.88]} rotation={[0, -Math.PI/2, 0]} />
+
+                <SouthTheaterStairsBottom raycast={() => null} position={[6.05, -5.68, 35.18]} rotation={[0, Math.PI, 0]} />
+                <SouthStairsNearTheater raycast={() => null} position={[1.8, -3, 35.2]} rotation={[0, Math.PI/2, 0]} />
               </>
             )}
 
@@ -184,6 +203,10 @@ export default function MapOfSchool() {
               <StairDownNorth raycast={() => null} position={[11.8, 0.45, -1.1]} rotation={[0, Math.PI, 0]} />
               <StairDownNorth raycast={() => null} position={[11.8, 3, -1.1]} rotation={[0, Math.PI, 0]} />
               <StairDownNorth raycast={() => null} position={[11.8, 6, -1.1]} rotation={[0, Math.PI, 0]} />
+
+              <StairsSouth raycast={() => null} position={[0.5, 3, 38.2]} rotation={[0, -Math.PI/2, 0]} />
+              <StairsSouth raycast={() => null} position={[0.5, 0.64, 38.2]} rotation={[0, -Math.PI/2, 0]} />
+              <StairsSouth raycast={() => null} position={[0.5, -3, 38.2]} rotation={[0, -Math.PI/2, 0]} />
             </>
             
             <OrbitControls />
