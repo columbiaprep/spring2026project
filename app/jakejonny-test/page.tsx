@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { collection, getDocs, DocumentData } from "firebase/firestore";
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase-config";
 
 /* ───────────────────────────────
@@ -97,6 +97,8 @@ export default function CGPSDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [bookedRoomId, setBookedRoomId] = useState<string | null>(null);
+  const [roomBookingDocId, setRoomBookingDocId] = useState<string | null>(null);
+  const [ohRsvpDocIds, setOhRsvpDocIds] = useState<Record<string, string>>({});
   const [roomMessage, setRoomMessage] = useState<string | null>(null);
   const [ohMessage, setOhMessage] = useState<string | null>(null);
 
@@ -268,7 +270,7 @@ export default function CGPSDashboard() {
      BOOKING (SIDE-EFFECT SAFE)
   ─────────────────────────────── */
 
-  function bookRoom(id: string) {
+  async function bookRoom(id: string) {
     if (bookedRoomId) {
       setRoomMessage("You already have a room booked.");
       return;
@@ -285,37 +287,46 @@ export default function CGPSDashboard() {
     setRooms(prev =>
       prev.map(room =>
         room.id === id
-          ? {
-              ...room,
-              currentOccupancy: room.currentOccupancy + 1,
-              userBooked: true,
-            }
+          ? { ...room, currentOccupancy: room.currentOccupancy + 1, userBooked: true }
           : room
       )
     );
-
     setBookedRoomId(id);
     setRoomMessage(`✓ Booked Room ${target.roomNumber}`);
+
+    try {
+      const bookingRef = await addDoc(collection(db, "roomBookings"), {
+        userEmail: user?.email ?? "anonymous",
+        roomNumber: target.roomNumber,
+        bookedAt: serverTimestamp(),
+      });
+      setRoomBookingDocId(bookingRef.id);
+    } catch (err) {
+      console.error("Failed to save room booking:", err);
+    }
   }
 
-  function unbookRoom(id: string) {
+  async function unbookRoom(id: string) {
     setRooms((prev) =>
       prev.map((room) => {
         if (room.id !== id) return room;
-
         setBookedRoomId(null);
         setRoomMessage(`✓ Unbooked Room ${room.roomNumber}`);
-
-        return {
-          ...room,
-          currentOccupancy: Math.max(room.currentOccupancy - 1, 0),
-          userBooked: false,
-        };
+        return { ...room, currentOccupancy: Math.max(room.currentOccupancy - 1, 0), userBooked: false };
       })
     );
+
+    if (roomBookingDocId) {
+      try {
+        await deleteDoc(doc(db, "roomBookings", roomBookingDocId));
+        setRoomBookingDocId(null);
+      } catch (err) {
+        console.error("Failed to delete room booking:", err);
+      }
+    }
   }
 
-  function bookOfficeHour(id: string) {
+  async function bookOfficeHour(id: string) {
     const target = officeHours.find(o => o.id === id);
     if (!target) return;
 
@@ -324,23 +335,34 @@ export default function CGPSDashboard() {
       return;
     }
 
-    setOfficeHours(prev =>
-      prev.map(o =>
-        o.id === id ? { ...o, userBooked: true } : o
-      )
-    );
-
+    setOfficeHours(prev => prev.map(o => o.id === id ? { ...o, userBooked: true } : o));
     setOhMessage(`✓ RSVP'd ${target.teacherName}`);
+
+    try {
+      const rsvpRef = await addDoc(collection(db, "officeHourRSVPs"), {
+        userEmail: user?.email ?? "anonymous",
+        officeHourId: id,
+        rsvpAt: serverTimestamp(),
+      });
+      setOhRsvpDocIds(prev => ({ ...prev, [id]: rsvpRef.id }));
+    } catch (err) {
+      console.error("Failed to save RSVP:", err);
+    }
   }
 
-  function unbookOfficeHour(id: string) {
-    setOfficeHours((prev) =>
-      prev.map((oh) =>
-        oh.id === id ? { ...oh, userBooked: false } : oh
-      )
-    );
-
+  async function unbookOfficeHour(id: string) {
+    setOfficeHours((prev) => prev.map((oh) => oh.id === id ? { ...oh, userBooked: false } : oh));
     setOhMessage("✓ Cancelled RSVP");
+
+    const rsvpDocId = ohRsvpDocIds[id];
+    if (rsvpDocId) {
+      try {
+        await deleteDoc(doc(db, "officeHourRSVPs", rsvpDocId));
+        setOhRsvpDocIds(prev => { const next = { ...prev }; delete next[id]; return next; });
+      } catch (err) {
+        console.error("Failed to delete RSVP:", err);
+      }
+    }
   }
 
   /* ───────────────────────────────
@@ -415,7 +437,7 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
   );
 }
 
-function handleTeacherFormSubmit() {
+async function handleTeacherFormSubmit() {
   if (
     !teacherForm.name ||
     !teacherForm.subject ||
@@ -425,30 +447,45 @@ function handleTeacherFormSubmit() {
     return;
   }
 
-  const newOH = {
-    id: crypto.randomUUID(),
+  const docData = {
     teacherName: teacherForm.name,
     subject: teacherForm.subject,
     day: teacherForm.day,
     start: teacherForm.start,
     end: teacherForm.end,
     room: teacherForm.room,
-    userBooked: false,
+    postedAt: serverTimestamp(),
   };
 
-  setOfficeHours((prev) => [newOH, ...prev]);
+  try {
+    const docRef = await addDoc(collection(db, "officeHours"), docData);
 
-  setFormSaved(true);
-  setTimeout(() => setFormSaved(false), 2000);
+    const newOH: OfficeHour = {
+      id: docRef.id,
+      teacherName: teacherForm.name,
+      subject: teacherForm.subject,
+      day: teacherForm.day,
+      start: teacherForm.start,
+      end: teacherForm.end,
+      room: teacherForm.room,
+      userBooked: false,
+    };
 
-  setTeacherForm({
-    name: "",
-    subject: "",
-    day: "Monday",
-    start: "",
-    end: "",
-    room: "",
-  });
+    setOfficeHours((prev) => [newOH, ...prev]);
+    setFormSaved(true);
+    setTimeout(() => setFormSaved(false), 2000);
+
+    setTeacherForm({
+      name: "",
+      subject: "",
+      day: "Monday",
+      start: "",
+      end: "",
+      room: "",
+    });
+  } catch (err) {
+    console.error("Failed to post office hours:", err);
+  }
 }
 /* ───────────────────────────────
    DAY PILL
