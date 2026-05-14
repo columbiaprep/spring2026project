@@ -142,11 +142,11 @@ export default function CGPSDashboard() {
           return;
         }
 
-        const parsed: Room[] = snap.docs.map((doc) => {
-          const d = doc.data() as DocumentData;
+        const parsed: Room[] = snap.docs.map((docSnap) => {
+          const d = docSnap.data() as DocumentData;
 
           return {
-            id: doc.id,
+            id: docSnap.id,
             roomNumber: String(d.roomNumber ?? ""),
             className: String(d.className ?? ""),
             classStart: String(d.classStart ?? "00:00"),
@@ -193,11 +193,11 @@ export default function CGPSDashboard() {
           return;
         }
 
-        const parsed: OfficeHour[] = snap.docs.map((doc) => {
-          const d = doc.data() as DocumentData;
+        const parsed: OfficeHour[] = snap.docs.map((docSnap) => {
+          const d = docSnap.data() as DocumentData;
 
           return {
-            id: doc.id,
+            id: docSnap.id,
             teacherName: String(d.teacherName ?? ""),
             subject: String(d.subject ?? ""),
             day: String(d.day ?? "Monday"),
