@@ -1,0 +1,56 @@
+CGPS SCHOOL APP — FIRESTORE SCHEMA
+Firestore database ID: "school-app"
+
+====================================
+studyBuddies_users
+====================================
+Document ID: student email (e.g. "aazadian27@cgps.org")
+
+- studentId  : number
+- name       : string   ("Last, First")
+- email      : string
+- optedIn    : boolean
+- updatedAt  : timestamp
+
+====================================
+rooms
+====================================
+Document ID: roomNumber (e.g. "302W")
+
+- roomNumber       : string
+- capacity         : number
+- currentOccupancy : number
+- classes          : array of { className, teacher, start, end }
+- officeHours      : array of { officeHourId, teacherName, subject, day, start, end }
+- bookings         : array of { bookingId, userEmail, bookedAt }
+
+====================================
+roomBookings
+====================================
+Document ID: auto
+
+- userEmail  : string
+- roomNumber : string
+- bookedAt   : timestamp
+
+====================================
+officeHours
+====================================
+Document ID: auto
+
+- teacherName : string
+- subject     : string
+- day         : string  ("Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday")
+- start       : string  ("HH:MM")
+- end         : string  ("HH:MM")
+- room        : string
+- postedAt    : timestamp
+
+====================================
+officeHourRSVPs
+====================================
+Document ID: auto
+
+- userEmail    : string
+- officeHourId : string
+- rsvpAt       : timestamp

@@ -4,24 +4,23 @@ import { cycleDays } from "@/app/armen/data/cycleDays";
 import { getPeriodStartTime } from "@/app/armen/data/periodTimes";
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
-// In-memory store: studentId → { count, dateKey }
+// In-memory store: senderEmail → { count, dateKey }
 // dateKey is "YYYY-MM-DD" — resets automatically when the date changes.
 const DAILY_LIMIT = 3;
-const rateLimitStore = new Map<number, { count: number; dateKey: string }>();
+const rateLimitStore = new Map<string, { count: number; dateKey: string }>();
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10); // "2026-04-08"
 }
 
-// Returns true if the student is within the daily limit (and increments their count).
+// Returns true if the sender is within the daily limit (and increments their count).
 // Returns false if they've hit the cap.
-function checkAndIncrement(studentId: number): boolean {
+function checkAndIncrement(email: string): boolean {
   const today = todayKey();
-  const entry = rateLimitStore.get(studentId);
+  const entry = rateLimitStore.get(email);
 
   if (!entry || entry.dateKey !== today) {
-    // First invite of the day (or new day) — reset counter
-    rateLimitStore.set(studentId, { count: 1, dateKey: today });
+    rateLimitStore.set(email, { count: 1, dateKey: today });
     return true;
   }
 
@@ -31,10 +30,10 @@ function checkAndIncrement(studentId: number): boolean {
   return true;
 }
 
-// How many invites the student has left today (for the response header).
-function remainingToday(studentId: number): number {
+// How many invites the sender has left today (for the response header).
+function remainingToday(email: string): number {
   const today = todayKey();
-  const entry = rateLimitStore.get(studentId);
+  const entry = rateLimitStore.get(email);
   if (!entry || entry.dateKey !== today) return DAILY_LIMIT;
   return Math.max(0, DAILY_LIMIT - entry.count);
 }
@@ -46,7 +45,7 @@ interface SharedFree {
 
 interface ConnectEmailBody {
   senderName:    string;
-  senderId:      number;
+  senderEmail:   string;
   recipientName: string;
   recipientId:   number;
   className:     string;
@@ -133,21 +132,27 @@ export async function POST(req: NextRequest) {
   }
 
   const body: ConnectEmailBody = await req.json();
-  const { senderName, senderId, recipientName, recipientId, className, sharedFrees } = body;
+  const { senderName, senderEmail, recipientName, recipientId, className, sharedFrees } = body;
 
-  if (!checkAndIncrement(senderId)) {
+  if (!senderEmail) {
+    return NextResponse.json(
+      { error: "Sender email is required." },
+      { status: 400 }
+    );
+  }
+
+  if (!checkAndIncrement(senderEmail)) {
     return NextResponse.json(
       { error: "You've reached your 3 invite limit for today. Try again tomorrow." },
       { status: 429, headers: { "X-Invites-Remaining": "0" } }
     );
   }
 
-  const senderEmail    = getStudentEmail(senderName, senderId);
   const recipientEmail = getStudentEmail(recipientName, recipientId);
 
-  if (!senderEmail || !recipientEmail) {
+  if (!recipientEmail) {
     return NextResponse.json(
-      { error: "Could not resolve one or both student emails. Add them to studentGradYears.ts." },
+      { error: "Could not resolve recipient email. Add them to studentGradYears.ts." },
       { status: 400 }
     );
   }
@@ -205,6 +210,6 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { success: true, to: recipientEmail, receipt: senderEmail, invitesRemaining: remainingToday(senderId) }
+    { success: true, to: recipientEmail, receipt: senderEmail, invitesRemaining: remainingToday(senderEmail) }
   );
 }
