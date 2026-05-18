@@ -9,12 +9,6 @@ export function Model109N(props) {
   
   const { nodes, materials } = useGLTF('/109N.glb')
 
-  for (const key in materials) {
-    const material = materials[key]
-    material.transparent = true
-    material.opacity = 0.4
-  }
-
   return (
     <group {...props} dispose={null}>
       <mesh
