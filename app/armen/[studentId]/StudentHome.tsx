@@ -44,6 +44,7 @@ import { useRouter } from "next/navigation"; // Next.js router hook for programm
 import type { Student, ClassEntry } from "../data/parseSchedule"; // `import type` imports only the TypeScript type shape, not actual runtime code
 import { cycleDays } from "../data/cycleDays"; // object mapping "YYYY/MM/DD" → cycle day name (e.g. "Day 3")
 import { getPeriodTime } from "../data/periodTimes"; // function that returns the time string for a given period letter + day
+import { useAuth } from "@/context/AuthContext"; // Firebase Google auth context
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -283,6 +284,7 @@ interface Props {
 // FEATURE: Root component — screen navigation controller (optin → home → results → detail)
 export default function StudentHome({ currentStudent, allStudents }: Props) {
   const router = useRouter(); // Next.js hook that lets you navigate programmatically (like a redirect)
+  const { signOut: googleSignOut } = useAuth(); // Firebase sign-out so signing out also clears Google session
   const [view, setView] = useState<View>({ type: "optin" }); // useState is a React hook — returns [currentValue, setterFn]; <View> is a TypeScript generic saying "this state holds a View type"
   const [optedIn, setOptedIn] = useState<boolean | null>(null); // boolean | null is a union type — the value can be true, false, or null
 
@@ -310,7 +312,7 @@ export default function StudentHome({ currentStudent, allStudents }: Props) {
     setView({ type: "home" }); // navigate to the home screen — changes the `view` state which triggers a re-render
   };
 
-  const signOut = () => router.push("/armen"); // concise arrow function with no curly braces — the expression after => is the return value
+  const signOut = async () => { await googleSignOut(); router.push("/armen"); }; // signs out of Firebase then navigates back to the login screen
 
   if (view.type === "optin") {
     return (
@@ -479,6 +481,7 @@ function HomeScreen({
   onToggleOptIn,
   onSignOut,
 }: HomeScreenProps) {
+  const { user } = useAuth();
   const firstName = getFirstName(currentStudent.name);
   const displayDate = formatDisplayDate(todayKey);
   const scheduleItems = cycleDay ? getScheduleForDay(currentStudent, cycleDay) : [];
@@ -488,42 +491,62 @@ function HomeScreen({
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: C.pageBg }}>
 
-      {/* FEATURE: Home screen nav header — student name, opt-in status indicator, sign out button */}
       {/* Nav header */}
-      {/* borderBottom uses a template literal (`1px solid ${C.navyBorder}`) to insert the color variable into the CSS string — like Python's f-strings */}
       <div
-        className="px-5 py-4 flex items-center justify-between sticky top-0 z-10"
+        className="px-5 py-3 flex items-center justify-between sticky top-0 z-10"
         style={{ backgroundColor: C.navyBg, borderBottom: `1px solid ${C.navyBorder}` }}
       >
+        <CGPSMark small />
+
+        {/* Right side: opt-in pill + pfp + name + sign out */}
         <div className="flex items-center gap-3">
-          <CGPSMark small />
-          <div
-            className="h-6 w-px mx-1"
-            style={{ backgroundColor: C.navyBorder }}
-          />
-          <div>
-            <p className="text-sm font-semibold text-white leading-tight">{firstName}</p>
-            {/* optedIn ? C.gold : C.softText — ternary picks the color based on opt-in state */}
-          <p className="text-xs leading-tight" style={{ color: optedIn ? C.gold : C.softText }}>
-              {optedIn ? "Visible to others" : "Hidden from searches"} {/* same ternary pattern in JSX — curly braces {} let you embed JS expressions inside HTML-like tags */}
-            </p>
-          </div>
+          <span
+            className="text-xs font-medium px-2.5 py-1 rounded-full hidden sm:block"
+            style={{
+              backgroundColor: optedIn ? "#1A3A1A" : C.navyBorder,
+              color: optedIn ? C.gold : C.softText,
+            }}
+          >
+            {optedIn ? "Visible" : "Hidden"}
+          </span>
+
+          {/* Profile picture */}
+          {user?.photoURL ? (
+            <img
+              src={user.photoURL}
+              alt="Profile"
+              className="w-8 h-8 rounded-full object-cover"
+              style={{ outline: `2px solid ${C.navyBorder}` }}
+            />
+          ) : (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              style={{ backgroundColor: C.cgpsBlue }}
+            >
+              {initials(currentStudent.name)}
+            </div>
+          )}
+
+          {/* Name */}
+          <p className="text-sm font-semibold text-white hidden sm:block">{user?.displayName ?? firstName}</p>
+
+          {/* Sign out */}
+          <button
+            onClick={onSignOut}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+            style={{ color: C.softText, borderColor: C.navyBorder }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = C.navyBorder;
+              e.currentTarget.style.color = "#FFFFFF";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = C.softText;
+            }}
+          >
+            Sign Out
+          </button>
         </div>
-        <button
-          onClick={onSignOut}
-          className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
-          style={{ color: C.softText, borderColor: C.navyBorder }}
-          onMouseEnter={(e) => {
-            (e.currentTarget.style.backgroundColor = C.navyBorder);
-            (e.currentTarget.style.color = "#FFFFFF");
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget.style.backgroundColor = "transparent");
-            (e.currentTarget.style.color = C.softText);
-          }}
-        >
-          Sign Out
-        </button>
       </div>
 
       {/* Body */}

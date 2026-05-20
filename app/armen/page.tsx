@@ -1,9 +1,27 @@
-import { loadStudents } from "./data/parseSchedule";
+"use client";
+
+import { useEffect, useState } from "react";
+import { fetchStudents } from "./data/actions";
+import type { Student } from "./data/parseSchedule";
 import StudyBuddiesApp from "./StudyBuddiesApp";
 
-// Server component — reads the CSV once per request and passes data to the
-// client component. No "use client" here so fs/path work fine.
 export default function Page() {
-  const students = loadStudents();
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    fetchStudents().then(setStudents);
+  }, []);
+
+  if (students.length === 0) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#1C2B4A" }}
+      >
+        <div className="w-6 h-6 rounded-full border-2 border-white border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   return <StudyBuddiesApp students={students} />;
 }

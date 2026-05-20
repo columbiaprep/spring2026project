@@ -1,6 +1,7 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 import { db } from "@/firebase-config"
 import { collection, getDocs } from "firebase/firestore"
@@ -54,6 +55,15 @@ import { TheaterWalkLeft } from './TheaterWalkLeft'
 import { TopOfTheater } from './TopOfTheater'
 import { WeightRoom } from './WeightRoom'
 
+const ROOM_LABELS: Record<string, string> = {
+  TechHubModel: "Tech Hub",
+  Model112N: "112N",
+  Model111N: "111N",
+  Model113N: "113N",
+  Model110N: "110N",
+  Model109N: "109N",
+}
+
 export default function MapOfSchool() {
 
   const [basement, setBasement] = useState(true)
@@ -64,7 +74,8 @@ export default function MapOfSchool() {
   const [floorFive, setFloorFive] = useState(false)
 
   const { user, loading, signOut } = useAuth()
-  
+  const router = useRouter()
+
   const [data, setData] = useState<object[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
 
@@ -102,9 +113,9 @@ export default function MapOfSchool() {
         }}
         onClick={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation()
-          // set the selected room to the model's name (fallback to 'Room')
-          const name = Model?.name || 'Room'
-          setSelectedRoom(name)
+          const modelName = Model?.name || 'Room'
+          const label = ROOM_LABELS[modelName] || modelName
+          setSelectedRoom(label)
           setActive(!active)
         }}
       />
