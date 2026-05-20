@@ -33,20 +33,133 @@ type OfficeHour = {
 };
 
 /* ───────────────────────────────
-   MOCK DATA
+   ROOM CATALOG
+   Source of truth for all room metadata. Firebase rooms collection
+   only stores live bookings — not class schedules or capacity.
 ─────────────────────────────── */
 
-const MOCK_ROOMS: Room[] = [
+type CatalogRoom = {
+  id: string;
+  label: string;
+  capacity: number;
+  defaultOccupancy: number;
+  classes: { className: string; teacher: string; start: string; end: string }[];
+};
+
+const ROOM_CATALOG: CatalogRoom[] = [
   {
-    id: "1",
-    roomNumber: "201",
-    className: "AP Biology",
-    classStart: "09:00",
-    classEnd: "10:30",
-    capacity: 10,
-    currentOccupancy: 4,
-    teacher: "Ms. Johnson",
-    userBooked: false,
+    id: "106N", label: "106 N", capacity: 8, defaultOccupancy: 3,
+    classes: [
+      { className: "Algebra II",    teacher: "Mr. Patel",   start: "08:05", end: "08:55" },
+      { className: "Pre-Calculus",  teacher: "Mr. Patel",   start: "10:00", end: "10:50" },
+      { className: "Statistics",    teacher: "Ms. Torres",  start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "110W", label: "110 W", capacity: 12, defaultOccupancy: 5,
+    classes: [
+      { className: "English 10",    teacher: "Ms. Reyes",   start: "09:00", end: "09:50" },
+      { className: "AP English Lit", teacher: "Ms. Reyes",  start: "11:00", end: "11:50" },
+      { className: "Creative Writing", teacher: "Mr. Shaw", start: "14:30", end: "15:20" },
+    ],
+  },
+  {
+    id: "111W", label: "111 W", capacity: 10, defaultOccupancy: 0,
+    classes: [
+      { className: "World History", teacher: "Mr. Nguyen",  start: "08:05", end: "08:55" },
+      { className: "AP US History", teacher: "Mr. Nguyen",  start: "12:40", end: "13:30" },
+      { className: "Civics",        teacher: "Ms. Okafor",  start: "14:30", end: "15:20" },
+    ],
+  },
+  {
+    id: "117E", label: "117 E", capacity: 15, defaultOccupancy: 11,
+    classes: [
+      { className: "Spanish II",    teacher: "Sra. López",  start: "09:00", end: "09:50" },
+      { className: "Spanish III",   teacher: "Sra. López",  start: "10:00", end: "10:50" },
+      { className: "French I",      teacher: "M. Bernard",  start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "201N", label: "201 N", capacity: 20, defaultOccupancy: 8,
+    classes: [
+      { className: "AP Biology",    teacher: "Dr. Marsh",   start: "08:05", end: "08:55" },
+      { className: "AP Biology Lab", teacher: "Dr. Marsh",  start: "10:00", end: "11:50" },
+      { className: "Anatomy",       teacher: "Ms. Vega",    start: "12:40", end: "13:30" },
+    ],
+  },
+  {
+    id: "206W", label: "206 W", capacity: 18, defaultOccupancy: 14,
+    classes: [
+      { className: "Chemistry",     teacher: "Mr. Osei",    start: "09:00", end: "09:50" },
+      { className: "AP Chemistry",  teacher: "Mr. Osei",    start: "11:00", end: "11:50" },
+      { className: "Physics",       teacher: "Ms. Huang",   start: "14:30", end: "15:20" },
+    ],
+  },
+  {
+    id: "215S", label: "215 S", capacity: 6, defaultOccupancy: 2,
+    classes: [
+      { className: "Studio Art",    teacher: "Ms. Ferraro", start: "10:00", end: "11:50" },
+      { className: "Photography",   teacher: "Mr. Ellis",   start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "218S", label: "218 S", capacity: 12, defaultOccupancy: 1,
+    classes: [
+      { className: "Music Theory",  teacher: "Ms. Kim",     start: "08:05", end: "08:55" },
+      { className: "Band",          teacher: "Mr. Russo",   start: "12:40", end: "13:30" },
+      { className: "Choir",         teacher: "Ms. Kim",     start: "14:30", end: "15:20" },
+    ],
+  },
+  {
+    id: "304N", label: "304 N", capacity: 8, defaultOccupancy: 6,
+    classes: [
+      { className: "AP Calculus BC", teacher: "Dr. Chen",   start: "08:05", end: "08:55" },
+      { className: "Calculus AB",   teacher: "Dr. Chen",    start: "10:00", end: "10:50" },
+      { className: "Linear Algebra", teacher: "Dr. Chen",   start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "307W", label: "307 W", capacity: 10, defaultOccupancy: 0,
+    classes: [
+      { className: "Economics",     teacher: "Ms. Bloom",   start: "09:00", end: "09:50" },
+      { className: "AP Econ",       teacher: "Ms. Bloom",   start: "11:00", end: "11:50" },
+      { className: "Personal Finance", teacher: "Mr. Wade", start: "12:40", end: "13:30" },
+    ],
+  },
+  {
+    id: "405S", label: "405 S", capacity: 16, defaultOccupancy: 9,
+    classes: [
+      { className: "AP Physics C",  teacher: "Mr. Johanson", start: "08:05", end: "08:55" },
+      { className: "Physics Honors", teacher: "Mr. Johanson", start: "10:00", end: "10:50" },
+      { className: "Astronomy",     teacher: "Ms. Grant",   start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "418N", label: "418 N", capacity: 14, defaultOccupancy: 4,
+    classes: [
+      { className: "AP Psych",      teacher: "Dr. Rivera",  start: "09:00", end: "09:50" },
+      { className: "Sociology",     teacher: "Dr. Rivera",  start: "12:40", end: "13:30" },
+      { className: "Philosophy",    teacher: "Ms. Adler",   start: "14:30", end: "15:20" },
+    ],
+  },
+  {
+    id: "502S", label: "502 S", capacity: 8, defaultOccupancy: 7,
+    classes: [
+      { className: "Drama I",       teacher: "Mr. Baxter",  start: "10:00", end: "10:50" },
+      { className: "AP Lit Seminar", teacher: "Ms. Pierce", start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "COMP-LAB", label: "Computer Lab", capacity: 25, defaultOccupancy: 0,
+    classes: [
+      { className: "Intro to CS",   teacher: "Mr. Park",    start: "08:05", end: "08:55" },
+      { className: "AP CS A",       teacher: "Mr. Park",    start: "11:00", end: "11:50" },
+      { className: "Digital Media", teacher: "Ms. Ito",     start: "13:35", end: "14:25" },
+    ],
+  },
+  {
+    id: "LIBRARY", label: "Library", capacity: 35, defaultOccupancy: 7,
+    classes: [],
   },
 ];
 
@@ -127,50 +240,24 @@ export default function CGPSDashboard() {
   ─────────────────────────────── */
 
   useEffect(() => {
-    console.log("📡 Fetching rooms...");
-
-    let alive = true;
-
-    async function fetchRooms() {
-      try {
-        const snap = await getDocs(collection(db, "rooms"));
-
-        if (!alive) return;
-
-        if (snap.empty) {
-          setRooms(MOCK_ROOMS);
-          return;
-        }
-
-        const parsed: Room[] = snap.docs.map((docSnap) => {
-          const d = docSnap.data() as DocumentData;
-
-          return {
-            id: docSnap.id,
-            roomNumber: String(d.roomNumber ?? ""),
-            className: String(d.className ?? ""),
-            classStart: String(d.classStart ?? "00:00"),
-            classEnd: String(d.classEnd ?? "00:00"),
-            capacity: Math.max(Number(d.capacity ?? 1), 1),
-            currentOccupancy: Math.max(Number(d.currentOccupancy ?? 0), 0),
-            teacher: String(d.teacher ?? ""),
-            userBooked: false,
-          };
-        });
-
-        setRooms(parsed);
-      } catch (err) {
-        console.error(err);
-        setRooms(MOCK_ROOMS);
-      }
-    }
-
-    fetchRooms();
-
-    return () => {
-      alive = false;
-    };
-  }, [db]);
+    const rooms = ROOM_CATALOG.map((catalogRoom) => {
+      const active =
+        catalogRoom.classes.find((c) => isClassNow(c.start, c.end)) ?? null;
+      return {
+        id: catalogRoom.id,
+        roomNumber: catalogRoom.label,
+        className: active?.className ?? "",
+        classStart: active?.start ?? "00:00",
+        classEnd: active?.end ?? "00:00",
+        capacity: catalogRoom.capacity,
+        currentOccupancy: catalogRoom.defaultOccupancy,
+        teacher: active?.teacher ?? "",
+        userBooked: false,
+      };
+    });
+    setRooms(rooms);
+    setLoading(false);
+  }, []);
 
   /* ───────────────────────────────
      FIRESTORE OFFICE HOURS
