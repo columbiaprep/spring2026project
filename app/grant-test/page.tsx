@@ -1,6 +1,7 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 import { db } from "@/firebase-config"
 import { collection, getDocs } from "firebase/firestore"
@@ -43,6 +44,15 @@ import { TheaterBehindStage } from './TheaterBehindStage'
 import { TheaterStage } from './TheaterStage'
 import { TheaterWalk } from './TheaterWalk'
 
+const ROOM_LABELS: Record<string, string> = {
+  TechHubModel: "Tech Hub",
+  Model112N: "112N",
+  Model111N: "111N",
+  Model113N: "113N",
+  Model110N: "110N",
+  Model109N: "109N",
+}
+
 export default function MapOfSchool() {
 
   const [basement, setBasement] = useState(true)
@@ -53,7 +63,8 @@ export default function MapOfSchool() {
   const [floorFive, setFloorFive] = useState(false)
 
   const { user, loading, signOut } = useAuth()
-  
+  const router = useRouter()
+
   const [data, setData] = useState<object[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
 
@@ -91,9 +102,9 @@ export default function MapOfSchool() {
         }}
         onClick={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation()
-          // set the selected room to the model's name (fallback to 'Room')
-          const name = Model?.name || 'Room'
-          setSelectedRoom(name)
+          const modelName = Model?.name || 'Room'
+          const label = ROOM_LABELS[modelName] || modelName
+          setSelectedRoom(label)
           setActive(!active)
         }}
       />
@@ -175,10 +186,40 @@ export default function MapOfSchool() {
       {selectedRoom && (
         <div style={{ position: 'fixed', right: 20, top: 65, zIndex: 30 }}>
           <Card>
-            <div style={{ padding: 12, minWidth: 180 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>{selectedRoom}</div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={() => setSelectedRoom(null)} style={{ padding: '6px 10px' }}>Close</button>
+            <div style={{ padding: 16, minWidth: 200, background: '#0f172a', borderRadius: 12 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#f1f5f9', marginBottom: 4 }}>{selectedRoom}</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>Room selected</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => router.push(`/jakejonny-test?room=${encodeURIComponent(selectedRoom)}`)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    background: 'linear-gradient(135deg,#1d4ed8,#0284c7)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Book Room
+                </button>
+                <button
+                  onClick={() => setSelectedRoom(null)}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    color: '#94a3b8',
+                    border: '1px solid #334155',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✕
+                </button>
               </div>
             </div>
           </Card>

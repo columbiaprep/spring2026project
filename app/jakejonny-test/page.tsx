@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase-config";
@@ -87,9 +88,20 @@ function isClassNow(start: string, end: string): boolean {
 
 export default function CGPSDashboard() {
   const { user, signInWithGoogle, signOut } = useAuth();
+  const searchParams = useSearchParams();
 
   const [attested, setAttested] = useState(false);
   const [activeTab, setActiveTab] = useState<"rooms" | "officehours">("rooms");
+  const [highlightedRoom, setHighlightedRoom] = useState<string | null>(null);
+
+  useEffect(() => {
+    const room = searchParams.get("room");
+    if (room) {
+      setHighlightedRoom(room);
+      setActiveTab("rooms");
+      setAttested(true);
+    }
+  }, [searchParams]);
 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [officeHours, setOfficeHours] = useState<OfficeHour[]>([]);
@@ -540,7 +552,7 @@ function DayPill({ day }: { day: string }) {
         borderBottom: "1px solid #1e293b",
         padding: "0 32px",
         position: "sticky",
-        top: 0,
+        top: 64,
         zIndex: 50,
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -716,6 +728,7 @@ function DayPill({ day }: { day: string }) {
                   const inSession = isClassNow(room.classStart, room.classEnd);
                   const isFull = room.currentOccupancy >= room.capacity;
                   const isDisabled = bookedRoomId !== null && bookedRoomId !== room.id;
+                  const isHighlighted = highlightedRoom !== null && room.roomNumber === highlightedRoom;
 
                   let statusLabel = "Available";
                   let statusBg = "#052e16";
@@ -742,8 +755,11 @@ function DayPill({ day }: { day: string }) {
                       style={{
                         background: room.userBooked
                           ? "linear-gradient(135deg, #0c1a3b, #0f172a)"
+                          : isHighlighted
+                          ? "linear-gradient(135deg, #0c2a1a, #0f172a)"
                           : "#0f172a",
-                        border: room.userBooked ? "1px solid #1d4ed8" : "1px solid #1e293b",
+                        border: room.userBooked ? "1px solid #1d4ed8" : isHighlighted ? "2px solid #22c55e" : "1px solid #1e293b",
+                        boxShadow: isHighlighted ? "0 0 20px rgba(34,197,94,0.25)" : undefined,
                         borderRadius: 16,
                         padding: 22,
                         position: "relative",
